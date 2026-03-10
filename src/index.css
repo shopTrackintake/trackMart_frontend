@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================= */
+/* 🎨 HEALTH TECH DESIGN SYSTEM  */
+/* ============================= */
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+:root {
+  --color-primary: #FF7043;
+  --color-primary-hover: #F4511E;
+
+  --color-bg-app: #FFFDF9;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-alt: #FAF3EB;
+
+  --color-text-strong: #263238;
+  --color-text-default: #546E7A;
+  --color-text-muted: #9ca3af;
+
+  --color-border-default: #ECEFF1;
+
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+}
+
+/* ============================= */
+/* Base Styles */
+/* ============================= */
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--color-bg-app);
+  color: var(--color-text-default);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-text-strong);
+}
+
+/* ============================= */
+/* Custom Utility Classes */
+/* ============================= */
+
+.bg-app {
+  background-color: var(--color-bg-app);
+}
+
+.bg-surface {
+  background-color: var(--color-bg-surface);
+}
+
+.bg-surface-alt {
+  background-color: var(--color-bg-surface-alt);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.hover-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.text-strong {
+  color: var(--color-text-strong);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.border-default {
+  border-color: var(--color-border-default);
+}
+
+/* ============================= */
+/* Card Style */
+/* ============================= */
+
+.card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.07);
+}
+
+/* ============================= */
+/* Buttons */
+/* ============================= */
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 14px;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-outline {
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 8px 20px;
+  border-radius: 14px;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ============================= */
+/* Smooth fade animation */
+/* ============================= */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fadeInUp 0.5s ease forwards;
+}
