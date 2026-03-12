@@ -73,9 +73,9 @@ export default function VendorProducts() {
                 <img
                   src={
                     p.image_url?.startsWith("http")
-                      ? p.image_url
-                      : `http://localhost:5000/uploads/${p.image_url}`
-                  }
+      ? p.image_url
+      : `${import.meta.env.VITE_API_URL}/uploads/${p.image_url}`
+  }
                   alt={p.title}
                   className="max-h-full object-contain"
                 />
