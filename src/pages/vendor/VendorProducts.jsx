@@ -1,145 +1,148 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
-export default function VendorProducts(){
+export default function VendorProducts() {
 
-const [products,setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
 
+  const fetchProducts = async () => {
+    try {
 
-/* ================= FETCH PRODUCTS ================= */
+      const res = await api.get("/products/vendor");
+      setProducts(res.data);
 
-const fetchProducts = async()=>{
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
- try{
-
-  const res = await api.get("/products/vendor");
-  setProducts(res.data);
-
- }catch(err){
-
-  console.log("Fetch error:",err);
-
- }
-
-};
-
-useEffect(()=>{
- fetchProducts();
-},[]);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
 
-/* ================= DELETE PRODUCT ================= */
+  const deleteProduct = async (id) => {
 
-const deleteProduct = async(id)=>{
+    if (!window.confirm("Delete this product?")) return;
 
- if(!window.confirm("Delete this product?")) return;
+    try {
 
- try{
+      await api.delete(`/products/${id}`);
+      fetchProducts();
 
-  await api.delete(`/products/${id}`);
-
-  /* refresh list */
-
-  setProducts(prev => prev.filter(p => p.id !== id));
-
- }catch(err){
-
-  console.log(err);
-  alert("Unable to delete product");
-
- }
-
-};
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
 
-return(
+  return (
 
-<>
+    <>
+      <Navbar />
 
-<Navbar/>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-<div className="max-w-7xl mx-auto px-6 py-8">
-
-<h1 className="text-3xl font-bold mb-8">
-My Products
-</h1>
-
-
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-8">
+          My Products
+        </h1>
 
 
-{products.map(p=>(
+        {/* PRODUCT GRID */}
 
-<div
-key={p.id}
-className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition flex flex-col h-[360px]"
->
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
 
-{/* IMAGE */}
+          {products.map(p => (
 
-<div className="h-40 flex items-center justify-center bg-gray-50 rounded-t-xl p-4">
+            <div
+              key={p.id}
+              onClick={() => navigate(`/product/${p.id}`)}
+              className="bg-bgSurface border border-borderDefault rounded-xl shadow-card hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden"
+            >
 
-<img
-src={
-  p.image_url?.startsWith("http")
-    ? p.image_url
-    : `https://trackmart-backend.onrender.com/uploads/${p.image_url}`
-}
-alt={p.title}
-className="max-h-full object-contain"
-/>
+              {/* IMAGE */}
 
-</div>
+              <div className="h-40 bg-gray-50 flex items-center justify-center p-4">
 
+                <img
+                  src={
+                    p.image_url?.startsWith("http")
+                      ? p.image_url
+                      : `http://localhost:5000/uploads/${p.image_url}`
+                  }
+                  alt={p.title}
+                  className="max-h-full object-contain"
+                />
 
-{/* CONTENT */}
-
-<div className="flex flex-col flex-grow p-4">
-
-<h2 className="font-semibold text-lg line-clamp-1">
-{p.title}
-</h2>
-
-<p className="text-primary font-bold mt-1">
-₹{p.price}
-</p>
-
-<p className="text-sm text-gray-600 mt-2 line-clamp-2">
-{p.description}
-</p>
+              </div>
 
 
-{/* DELETE BUTTON */}
+              {/* CONTENT */}
 
-<div className="mt-auto pt-4">
+              <div className="flex flex-col flex-grow p-4 space-y-2">
 
-<button
-onClick={()=>deleteProduct(p.id)}
-className="text-red-600 font-medium hover:underline"
->
-Delete
-</button>
+                {/* TITLE */}
 
-</div>
+                <h2 className="font-semibold text-lg text-textStrong line-clamp-1">
+                  {p.title}
+                </h2>
 
-</div>
 
-</div>
+                {/* PRICE */}
 
-))}
+                <p className="text-primary font-bold">
+                  ₹{p.price}
+                </p>
 
-</div>
 
-</div>
+                {/* SIZE + STOCK */}
 
-<Footer/>
+                <p className="text-xs text-textMuted">
+                  Size: {p.size} | Stock: {p.stock}
+                </p>
 
-</>
 
-);
+                {/* DESCRIPTION */}
 
+                <p className="text-sm text-textMuted line-clamp-2">
+                  {p.description}
+                </p>
+
+
+                {/* DELETE BUTTON */}
+
+                <div className="mt-auto pt-4 flex justify-end">
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteProduct(p.id);
+                    }}
+                    className="text-dangerText text-sm font-medium hover:underline"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
+      <Footer />
+    </>
+
+  );
 }
