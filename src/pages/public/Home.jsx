@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { getProducts } from "../../services/productService";
 import { getCart, updateCartItem } from "../../services/cartService";
 
+import { Heart } from "lucide-react";
+import { getWishlist, toggleWishlist } from "../../services/wishlistService";
+
 export default function Home() {
 
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
+
+  const [wishlistIds, setWishlistIds] = useState([]);
+
   const navigate = useNavigate();
 
   /* ================= FETCH PRODUCTS ================= */
@@ -36,12 +42,46 @@ export default function Home() {
 
     fetchCart();
   }, []);
+/* ================= FETCH WISHLIST ================= */
+useEffect(() => {
+  const fetchWishlist = async () => {
+    try {
+      const res = await getWishlist();
+
+
+      setWishlistIds(res.data.map(i => String(i.product_id)));
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  fetchWishlist();
+}, []);
 
   /* ================= GET QUANTITY ================= */
   const getQuantity = (productId) => {
     const item = cartItems.find(i => i.id === productId);
     return item ? item.quantity : 0;
   };
+const toggleWishlistItem = async (productId) => {
+
+
+  try {
+
+    await toggleWishlist(productId);
+
+    const res = await getWishlist();
+
+    setWishlistIds(res.data.map(i => String(i.product_id)));
+
+  } catch (err) {
+
+    navigate("/login");
+
+  }
+
+};
 
   /* ================= INCREASE ================= */
   const increaseQty = async (product) => {
@@ -128,14 +168,30 @@ export default function Home() {
 
                 {/* IMAGE */}
                 {product.image_url && (
-                  <div className="h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
-                    <img
-  src={product.image_url}
-  alt={product.title}
-  className="max-h-full max-w-full object-contain"
-/>
-                  </div>
-                )}
+  <div className="relative h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
+    <img
+      src={product.image_url}
+      alt={product.title}
+      className="max-h-full max-w-full object-contain"
+    />
+
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleWishlistItem(product.id);
+      }}
+      className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md"
+    >
+      <Heart
+        className={`w-5 h-5 transition ${
+          wishlistIds.includes(String(product.id))
+            ? "fill-red-500 text-red-500"
+            : "text-gray-400"
+        }`}
+      />
+    </button>
+  </div>
+)}
 
                 {/* TITLE */}
                 <h3 className="font-primary text-lg font-semibold text-strong">
@@ -169,7 +225,11 @@ export default function Home() {
                   </div>
 
                   <div className="text-sm text-gray-500">
-                    Available: {product.stock} gm
+
+                    
+
+                    Available: {product.size} 
+
                   </div>
 
                 </div>
@@ -226,4 +286,8 @@ export default function Home() {
 
     </div>
   );
+
 }
+
+
+
