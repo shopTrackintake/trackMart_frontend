@@ -49,18 +49,26 @@ console.log(err);
 
 /* ADD TO CART */
 
-const addToCart = async(product)=>{
+const addToCart = async (item) => {
+  try {
 
-try{
+    /* ADD TO CART */
+    await updateCartItem(item.id, 1);
 
-await updateCartItem(product.id,1);
+    /* ALERT */
+    alert("Item added to cart");
 
-}catch(err){
+    /* REMOVE FROM WISHLIST */
+    await removeWishlist(item.wishlist_id);
 
-console.log(err);
+    /* UPDATE UI */
+    setItems(prev =>
+      prev.filter(i => i.wishlist_id !== item.wishlist_id)
+    );
 
-}
-
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 

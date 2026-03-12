@@ -11,15 +11,14 @@ export const addWishlist = (productId) => {
     product_id: productId
   });
 };
+/* ================= TOGGLE WISHLIST ================= */
 
-/* TOGGLE WISHLIST */
-
-export const toggleWishlist = (productId) => {
-  return api.post(`/wishlist/toggle/${productId}`);
+export const toggleWishlist = async (productId) => {
+  return api.post("/wishlist/toggle", {
+    product_id: productId
+  });
 };
-
 /* REMOVE */
 export const removeWishlist = (id) => {
   return api.delete(`/wishlist/${id}`);
-
 };
