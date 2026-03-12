@@ -16,6 +16,7 @@ export default function AddProduct() {
     ingredients: "",
     price: "",
     stock: "",
+    size: "",
     delivery_charge: "",
     calories: "",
     sugar: "",
@@ -53,7 +54,7 @@ export default function AddProduct() {
   const handleSubmit = async () => {
     try {
 
-      if (!form.title || !form.price || !form.stock) {
+      if (!form.title || !form.price || !form.stock|| !form.size) {
         alert("Please fill required fields");
         return;
       }
@@ -79,6 +80,7 @@ export default function AddProduct() {
         ingredients: "",
         price: "",
         stock: "",
+        size: "",
         delivery_charge: "",
         calories: "",
         sugar: "",
@@ -141,13 +143,31 @@ export default function AddProduct() {
           />
 
           <input
-            type="number"
-            value={form.stock}
-            placeholder="Stock (gm)"
-            className="border border-borderDefault rounded-xl px-4 py-3"
-            onChange={(e) => setForm({ ...form, stock: e.target.value })}
-          />
-
+ type="number"
+ value={form.stock}
+ placeholder="Stock (Number of Items)"
+ className="border border-borderDefault rounded-xl px-4 py-3"
+ onChange={(e)=>setForm({...form,stock:e.target.value})}
+/>
+<input
+ type="text"
+ value={form.size}
+ placeholder="Size (100g / 250g)"
+ className="border border-borderDefault rounded-xl px-4 py-3"
+ onChange={(e)=>setForm({...form,size:e.target.value})}
+/>
+<textarea
+ value={form.how_to_use}
+ placeholder="How to Use (Optional)"
+ className="w-full border border-borderDefault rounded-xl px-4 py-3"
+ onChange={(e)=>setForm({...form,how_to_use:e.target.value})}
+/>
+<textarea
+ value={form.making_process}
+ placeholder="Making Process (Optional)"
+ className="w-full border border-borderDefault rounded-xl px-4 py-3"
+ onChange={(e)=>setForm({...form,making_process:e.target.value})}
+/>
           {/* DELIVERY CHARGE */}
           <input
             type="number"
