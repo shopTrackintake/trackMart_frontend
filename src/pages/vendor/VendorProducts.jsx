@@ -71,11 +71,7 @@ export default function VendorProducts() {
               <div className="h-40 bg-gray-50 flex items-center justify-center p-4">
 
                 <img
-                  src={
-                    p.image_url?.startsWith("http")
-      ? p.image_url
-      : `${import.meta.env.VITE_API_URL}/uploads/${p.image_url}`
-  }
+                  src={p.image_url}
                   alt={p.title}
                   className="max-h-full object-contain"
                 />
