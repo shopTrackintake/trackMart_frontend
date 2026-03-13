@@ -152,7 +152,7 @@ export default function AddProduct() {
 <input
  type="text"
  value={form.size}
- placeholder="Size (100g / 250g)"
+ placeholder="Weight (100g / 250g)"
  className="border border-borderDefault rounded-xl px-4 py-3"
  onChange={(e)=>setForm({...form,size:e.target.value})}
 />
