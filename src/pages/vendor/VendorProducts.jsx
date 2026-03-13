@@ -71,11 +71,7 @@ export default function VendorProducts() {
               <div className="h-40 bg-gray-50 flex items-center justify-center p-4">
 
                 <img
-                  src={
-                    p.image_url?.startsWith("http")
-                      ? p.image_url
-                      : `http://localhost:5000/uploads/${p.image_url}`
-                  }
+                  src={p.image_url}
                   alt={p.title}
                   className="max-h-full object-contain"
                 />
