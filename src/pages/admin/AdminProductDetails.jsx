@@ -52,11 +52,7 @@ Product Details
 <div className="grid md:grid-cols-2 gap-8">
 
 <img
-src={
-product.image_url?.startsWith("http")
-? product.image_url
-: `http://localhost:5000/uploads/${product.image_url}`
-}
+src={product.image_url}
 className="w-full max-w-sm rounded-xl"
 />
 
@@ -92,7 +88,7 @@ Category: {product.category_name || product.category_id}
 </p>
 
 <p className="text-sm text-textMuted">
-Size: {product.size}
+Weight: {product.size}
 </p>
 
 

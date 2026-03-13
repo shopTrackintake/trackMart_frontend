@@ -104,7 +104,7 @@ export default function VendorProducts() {
                 {/* SIZE + STOCK */}
 
                 <p className="text-xs text-textMuted">
-                  Size: {p.size} | Stock: {p.stock}
+                  Weight: {p.size} | Stock: {p.stock}
                 </p>
 
 

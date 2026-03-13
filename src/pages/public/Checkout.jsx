@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   getAddresses,
   addAddress,
@@ -11,6 +13,7 @@ export default function Checkout(){
 
 const paymentRef = useRef(null);
 const formRef = useRef(null);
+const navigate = useNavigate();
 
 const [addresses,setAddresses] = useState([]);
 const [selected,setSelected] = useState(null);
@@ -97,6 +100,17 @@ const placeOrder = async()=>{
  setShowOverview(true);
 
 };
+
+
+/* FINAL TOTAL WITH DELIVERY */
+
+const totalprice = cartItems.reduce(
+  (acc,item)=>
+    acc +
+    (Number(item.price)*Number(item.quantity)) +
+    Number(item.delivery_charge || 0),
+  0
+);
 
 
 /* SAVE / UPDATE ADDRESS */
@@ -247,6 +261,16 @@ return(
 
 <div className="space-y-10">
 
+{/* BACK ARROW */}
+
+<button
+ onClick={()=>navigate("/cart")}
+ className="absolute top-16 left-6 p-10 rounded-full hover:bg-gray-100 transition z-50"
+>
+ <ArrowLeft className="w-6 h-6 text-gray-700"/>
+</button>
+
+
 <h1 className="text-3xl font-bold">Checkout</h1>
 
 
@@ -259,6 +283,7 @@ return(
 <div
 key={addr.id}
 onClick={()=>{
+
  setSelected(addr.id);
 
  setTimeout(()=>{
@@ -281,57 +306,6 @@ selected===addr.id
 <p>{addr.house_no}, {addr.street}</p>
 <p>{addr.locality}</p>
 <p>{addr.city}, {addr.state} - {addr.pincode}</p>
-
-
-<div className="flex gap-4 mt-3">
-
-<button
-onClick={(e)=>{
-
- e.stopPropagation();
-
- setEditingId(addr.id);
-
- setForm({
-  full_name:addr.full_name || "",
-  phone:addr.phone || "",
-  house_no:addr.house_no || "",
-  street:addr.street || "",
-  locality:addr.locality || "",
-  landmark:addr.landmark || "",
-  city:addr.city || "",
-  state:addr.state || "",
-  pincode:addr.pincode || "",
-  latitude:addr.latitude || "",
-  longitude:addr.longitude || ""
- });
-
- formRef.current?.scrollIntoView({
-  behavior:"smooth"
- });
-
-}}
-className="text-blue-500 text-xs"
->
-
-Edit
-
-</button>
-
-
-<button
-onClick={(e)=>{
- e.stopPropagation();
- handleDelete(addr.id);
-}}
-className="text-red-500 text-xs"
->
-
-Delete
-
-</button>
-
-</div>
 
 </div>
 
@@ -378,7 +352,6 @@ className="border p-2 w-full rounded-lg"/>
 onChange={e=>setForm({...form,pincode:e.target.value})}
 className="border p-2 w-full rounded-lg"/>
 
-
 <div className="flex gap-4">
 
 <button
@@ -419,7 +392,6 @@ Cash on Delivery
 
 </label>
 
-
 <label className="flex gap-3">
 
 <input
@@ -432,7 +404,6 @@ onChange={()=>setPaymentMethod("ONLINE")}
 Online Payment
 
 </label>
-
 
 <button
 onClick={placeOrder}
@@ -465,7 +436,12 @@ Order Overview
 
 <p>{item.title} (x{item.quantity})</p>
 
-<p>₹{item.price*item.quantity}</p>
+<p>
+₹{
+(Number(item.price)*Number(item.quantity)) +
+Number(item.delivery_charge || 0)
+}
+</p>
 
 </div>
 
@@ -474,7 +450,7 @@ Order Overview
 <div className="flex justify-between font-bold mt-4">
 
 <p>Total</p>
-<p>₹{totalAmount}</p>
+<p>₹{totalprice}</p>
 
 </div>
 
