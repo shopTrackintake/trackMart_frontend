@@ -25,15 +25,21 @@ export default function ProductDetails() {
         const found = productRes.data.find(p => p.id === id);
         setProduct(found);
 
-        const cartRes = await getCart();
+        const token = localStorage.getItem("token");
 
-        const cartItem = cartRes.data.find(
-          item => (item.product_id?.id || item.product_id) === id
-        );
+        if(token){
 
-        if (cartItem) {
-          setIsAdded(true);
-          setQuantity(cartItem.quantity);
+          const cartRes = await getCart();
+
+          const cartItem = cartRes.data.find(
+            item => (item.product_id?.id || item.product_id) === id
+          );
+
+          if (cartItem) {
+            setIsAdded(true);
+            setQuantity(cartItem.quantity);
+          }
+
         }
 
       } catch (err) {
@@ -48,7 +54,17 @@ export default function ProductDetails() {
   }, [id]);
 
 
+  /* ================= ADD TO CART ================= */
+
   const handleAddToCart = async () => {
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+      navigate("/register");
+      return;
+    }
+
     try {
 
       await updateCartItem(product.id, 1);
@@ -64,12 +80,22 @@ export default function ProductDetails() {
     } catch (err) {
       console.log(err);
     }
+
   };
 
+
+  /* ================= UPDATE QUANTITY ================= */
 
   const updateQuantity = async (newQty) => {
 
     if (newQty < 1) return;
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+      navigate("/register");
+      return;
+    }
 
     try {
 
@@ -90,7 +116,7 @@ export default function ProductDetails() {
 return (
   <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-10">
 
-    {/* SIMPLE BACK ARROW */}
+    {/* BACK ARROW */}
     <button
       onClick={() => navigate(-1)}
       className="absolute top-4 left-4 p-2 rounded-full hover:bg-gray-100 transition"
@@ -99,7 +125,6 @@ return (
     </button>
 
 
-    {/* TOP SECTION */}
     <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
 
       {/* IMAGE */}
@@ -118,25 +143,21 @@ return (
       </div>
 
 
-      {/* RIGHT DETAILS */}
+      {/* RIGHT SIDE */}
       <div className="space-y-5">
 
-        {/* TITLE */}
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-primary font-bold text-primary">
           {product.title}
         </h1>
 
-        {/* PRICE */}
         <div className="text-2xl sm:text-3xl font-semibold text-green-600">
           ₹{product.price}
         </div>
 
-        {/* SIZE */}
         <div className="text-sm sm:text-base text-textMuted">
           Weight: <span className="font-semibold text-textStrong">{product.size}</span>
         </div>
 
-        {/* STOCK */}
         {product.stock === 0 ? (
           <span className="inline-block bg-red-100 text-dangerText px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
             Out of Stock
@@ -149,6 +170,7 @@ return (
 
 
         {/* ADD TO CART */}
+
         {product.stock > 0 && (
 
           <div className="pt-3">
@@ -191,7 +213,7 @@ return (
         )}
 
 
-{/* NUTRITION STATS */}
+{/* NUTRITION */}
 
 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 
@@ -223,13 +245,17 @@ return (
 
 
         {/* DESCRIPTION */}
+
         <div className="bg-bgSurface border border-borderDefault rounded-xl p-4 sm:p-5 shadow-card">
+
           <h2 className="text-base sm:text-lg font-semibold text-black mb-2">
             Description
           </h2>
+
           <p className="text-sm sm:text-base text-textStrong leading-relaxed">
             {product.description}
           </p>
+
         </div>
 
       </div>
@@ -237,6 +263,7 @@ return (
 
 
 {/* VIEW CART POPUP */}
+
 {showPopup && (
 
 <div className="fixed bottom-6 right-6 bg-white border border-borderDefault shadow-lg rounded-xl p-4 flex items-center gap-4 z-50">
@@ -263,69 +290,6 @@ return (
 
 )}
 
-    {/* MAKING PROCESS */}
-    {product.making_process && (
-      <div className="bg-bgSurface border border-borderDefault rounded-xl p-4 sm:p-6 shadow-card">
-
-        <h2 className="text-base sm:text-lg font-semibold text-black mb-3">
-          Making Process
-        </h2>
-
-        <ul className="list-disc pl-5 sm:pl-6 space-y-2 text-sm sm:text-base text-textStrong">
-          {product.making_process.split("\n").map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-
-      </div>
-    )}
- {/* BENEFITS SECTION */}
-
-    {product.benefits && product.benefits.length > 0 && (
-
-      <div className="space-y-8">
-
-        <h2 className="text-2xl sm:text-3xl font-bold text-center">
-          Benefits
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-
-          {product.benefits.map((benefit, index) => (
-
-            <div
-              key={index}
-              className="bg-bgSurface border border-borderDefault rounded-xl shadow-card overflow-hidden hover:shadow-lg transition"
-            >
-
-              <img
-                src={benefit.image}
-                alt={benefit.title}
-                className="w-full h-44 sm:h-52 object-cover"
-              />
-
-              <div className="p-4 sm:p-6 space-y-2">
-
-                <h3 className="text-base sm:text-lg font-semibold text-textStrong">
-                  {benefit.title}
-                </h3>
-
-                <p className="text-sm text-textStrong leading-relaxed">
-                  {benefit.description}
-                </p>
-
-              </div>
-
-            </div>
-
-        
-          ))}
-
-        </div>
-
-      </div>
-
-    )}
   </div>
 );
 }
