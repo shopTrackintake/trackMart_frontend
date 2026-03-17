@@ -20,7 +20,6 @@ export default function AddProduct() {
     price: "",
     stock: "",
     size: "",
-    delivery_charge: "",
     calories: "",
     sugar: "",
     fat: "",
@@ -118,7 +117,7 @@ export default function AddProduct() {
         price: "",
         stock: "",
         size: "",
-        delivery_charge: "",
+        
         calories: "",
         sugar: "",
         fat: "",
@@ -290,13 +289,7 @@ export default function AddProduct() {
           onChange={(e) => setForm({ ...form, size: e.target.value })}
         />
 
-        <input
-          type="number"
-          value={form.delivery_charge}
-          placeholder="Delivery Charge"
-          className="w-full border rounded-xl px-4 py-3"
-          onChange={(e) => setForm({ ...form, delivery_charge: e.target.value })}
-        />
+       
 
         <textarea
           value={form.how_to_use}

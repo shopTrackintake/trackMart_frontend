@@ -79,16 +79,14 @@ Vendor: {product.business_name}
 ₹{product.price}
 </p>
 
-<p className="text-sm text-textMuted">
-Delivery Charge: ₹{product.delivery_charge}
-</p>
+
 
 <p className="text-sm text-textMuted">
 Category: {product.category_name || product.category_id}
 </p>
 
 <p className="text-sm text-textMuted">
-Weight: {product.size}
+Size: {product.size}
 </p>
 
 
