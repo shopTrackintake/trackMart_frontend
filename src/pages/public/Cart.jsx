@@ -65,8 +65,7 @@ export default function Cart() {
   const total = items.reduce(
     (acc, item) =>
       acc +
-      (Number(item.price) * item.quantity) +
-      Number(item.delivery_charge || 0),
+      (Number(item.price) * item.quantity),
     0
   );
 
@@ -138,8 +137,7 @@ export default function Cart() {
               {/* ITEM TOTAL WITH DELIVERY */}
               <div className="text-xl font-bold text-primary">
                 ₹{
-                  (Number(item.price) * item.quantity) +
-                  Number(item.delivery_charge || 0)
+                  (Number(item.price) * item.quantity) 
                 }
               </div>
 
