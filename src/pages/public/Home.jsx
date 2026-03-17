@@ -11,7 +11,7 @@ export default function Home() {
 
   const navigate = useNavigate();
   const { role, loading: authLoading } = useContext(AuthContext);
-
+const [loading,setLoading] = useState(false);
   const [products,setProducts] = useState([]);
   const [categories,setCategories] = useState([]);
 
@@ -35,27 +35,29 @@ export default function Home() {
   /* ================= FETCH PRODUCTS ================= */
 
   useEffect(()=>{
+const fetchProducts = async()=>{
 
-    const fetchProducts = async()=>{
+  try{
+    setLoading(true);
 
-      try{
+    const res = await getProducts({
+      search:searchQuery,
+      category,
+      care,
+      concern,
+      price,
+      sort
+    });
 
-        const res = await getProducts({
-          search:searchQuery,
-          category,
-          care,
-          concern,
-          price,
-          sort
-        });
+    setProducts(res.data);
 
-        setProducts(res.data);
+  }catch(err){
+    console.log(err);
+  }finally{
+    setLoading(false);
+  }
 
-      }catch(err){
-        console.log(err);
-      }
-
-    };
+};
 
     fetchProducts();
 
@@ -286,12 +288,12 @@ export default function Home() {
 
       {/* SIDEBAR + PRODUCTS */}
 
-      <section className="flex gap-10">
+      <section className="flex gap-10 h-[80vh] overflow-hidden">
 
 
         {/* SIDEBAR */}
 
-        <aside className="w-64">
+        <aside className="w-64 sticky top-0 h-fit">
 
           <h3 className="font-semibold mb-4">
             Categories
@@ -359,145 +361,161 @@ export default function Home() {
 
         {/* PRODUCTS GRID */}
 
-        <div className="flex-1">
+        <div className="flex-1 overflow-y-auto pr-2">
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
 
-            {products.map(product=>{
+  {loading ? (
 
-              const quantity = getQuantity(product.id);
+    <div className="col-span-full text-center py-20 text-gray-500 text-lg">
+      Loading products...
+    </div>
 
-              return(
+  ) : products.length === 0 ? (
 
-                <div
-                  key={product.id}
-                  className="bg-white border border-gray-200 rounded-2xl shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition"
+    <div className="col-span-full text-center py-20 text-gray-500 text-lg">
+      No products found
+    </div>
+
+  ) : (
+
+    products.map(product=>{
+
+      const quantity = getQuantity(product.id);
+
+      return(
+
+        <div
+          key={product.id}
+          className="bg-white border border-gray-200 rounded-2xl shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition"
+        >
+
+          {product.image_url && (
+
+            <div className="relative h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
+
+              <img
+                src={product.image_url}
+                alt={product.title}
+                className="max-h-full max-w-full object-contain"
+              />
+
+              {role==="customer" && (
+
+                <button
+                  onClick={(e)=>{
+                    e.stopPropagation();
+                    toggleWishlistItem(product.id)
+                  }}
+                  className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md"
                 >
 
-                  {product.image_url && (
+                  <Heart
+                    className={`w-5 h-5 ${
+                      wishlistIds.includes(String(product.id))
+                      ? "fill-red-500 text-red-500"
+                      : "text-gray-400"
+                    }`}
+                  />
 
-                    <div className="relative h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
+                </button>
 
-                      <img
-                        src={product.image_url}
-                        alt={product.title}
-                        className="max-h-full max-w-full object-contain"
-                      />
+              )}
 
-                      {role==="customer" && (
+            </div>
 
-                        <button
-                          onClick={(e)=>{
-                            e.stopPropagation();
-                            toggleWishlistItem(product.id)
-                          }}
-                          className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md"
-                        >
+          )}
 
-                          <Heart
-                            className={`w-5 h-5 ${
-                              wishlistIds.includes(String(product.id))
-                              ? "fill-red-500 text-red-500"
-                              : "text-gray-400"
-                            }`}
-                          />
+          <h3 className="font-primary text-lg font-semibold text-strong">
+            {product.title}
+          </h3>
 
-                        </button>
+          <p className="text-muted text-sm mt-2 line-clamp-2">
+            {product.description}
+          </p>
 
-                      )}
+          <div className="mt-4 flex justify-between items-center">
 
-                    </div>
+            <span className="text-primary font-bold text-lg">
+              ₹{product.price}
+            </span>
 
-                  )}
+            {product.health_rating && (
 
-                  <h3 className="font-primary text-lg font-semibold text-strong">
-                    {product.title}
-                  </h3>
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                product.health_rating==="Healthy"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+              }`}>
 
-                  <p className="text-muted text-sm mt-2 line-clamp-2">
-                    {product.description}
-                  </p>
+                {product.health_rating}
 
-                  <div className="mt-4 flex justify-between items-center">
+              </span>
 
-                    <span className="text-primary font-bold text-lg">
-                      ₹{product.price}
-                    </span>
+            )}
 
-                    {product.health_rating && (
-
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        product.health_rating==="Healthy"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                      }`}>
-
-                        {product.health_rating}
-
-                      </span>
-
-                    )}
-
-                  </div>
+          </div>
 
 
-                  {canAddToCart && (
+          {canAddToCart && (
 
-                    <div className="mt-6">
+            <div className="mt-6">
 
-                      {quantity===0 ? (
+              {quantity===0 ? (
 
-                        <button
-                          onClick={()=>increaseQty(product)}
-                          className="bg-primary text-white w-full py-2 rounded-xl font-semibold hover:bg-primaryHover transition"
-                        >
-                          Add to Cart
-                        </button>
+                <button
+                  onClick={()=>increaseQty(product)}
+                  className="bg-primary text-white w-full py-2 rounded-xl font-semibold hover:bg-primaryHover transition"
+                >
+                  Add to Cart
+                </button>
 
-                      ) : (
+              ) : (
 
-                        <div className="flex items-center justify-center gap-6 border border-gray-300 rounded-xl py-2">
-
-                          <button
-                            onClick={()=>decreaseQty(product)}
-                            className="text-xl font-bold px-4"
-                          >
-                            -
-                          </button>
-
-                          <span className="font-semibold text-lg">
-                            {quantity}
-                          </span>
-
-                          <button
-                            onClick={()=>increaseQty(product)}
-                            className="text-xl font-bold px-4"
-                          >
-                            +
-                          </button>
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                  )}
+                <div className="flex items-center justify-center gap-6 border border-gray-300 rounded-xl py-2">
 
                   <button
-                    onClick={()=>navigate(`/product/${product.id}`)}
-                    className="mt-3 border border-primary text-primary w-full py-2 rounded-xl font-semibold hover:bg-primary hover:text-white transition"
+                    onClick={()=>decreaseQty(product)}
+                    className="text-xl font-bold px-4"
                   >
-                    View Details
+                    -
+                  </button>
+
+                  <span className="font-semibold text-lg">
+                    {quantity}
+                  </span>
+
+                  <button
+                    onClick={()=>increaseQty(product)}
+                    className="text-xl font-bold px-4"
+                  >
+                    +
                   </button>
 
                 </div>
 
-              )
+              )}
 
-            })}
+            </div>
 
-          </div>
+          )}
+
+          <button
+            onClick={()=>navigate(`/product/${product.id}`)}
+            className="mt-3 border border-primary text-primary w-full py-2 rounded-xl font-semibold hover:bg-primary hover:text-white transition"
+          >
+            View Details
+          </button>
+
+        </div>
+
+      )
+
+    })
+
+  )}
+
+</div>
 
         </div>
 
