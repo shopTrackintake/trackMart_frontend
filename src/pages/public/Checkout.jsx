@@ -40,9 +40,7 @@ const [form,setForm] = useState({
  longitude:""
 });
 
-
 /* FETCH ADDRESSES */
-
 const fetchAddresses = async()=>{
  try{
   const res = await getAddresses();
@@ -52,15 +50,10 @@ const fetchAddresses = async()=>{
  }
 };
 
-
 /* FETCH CART */
-
 useEffect(()=>{
-
  const fetchCart = async()=>{
-
   try{
-
    const res = await api.get("/cart");
 
    const validItems = res.data.filter(
@@ -79,32 +72,23 @@ useEffect(()=>{
   }catch(err){
    console.log(err);
   }
-
  };
 
  fetchCart();
  fetchAddresses();
-
 },[]);
 
-
 /* PLACE ORDER */
-
 const placeOrder = async()=>{
-
  if(!selected){
   alert("Please select delivery address first.");
   return;
  }
-
  setShowOverview(true);
-
 };
 
 /* SAVE / UPDATE ADDRESS */
-
 const handleAdd = async()=>{
-
  try{
 
   if(
@@ -122,23 +106,17 @@ const handleAdd = async()=>{
   }
 
   if(editingId){
-
    await updateAddress(editingId,form);
    alert("Address updated");
    setEditingId(null);
-
   }else{
-
    const latest = await getAddresses();
-
    if(latest.data.length>=2){
     alert("Maximum 2 addresses allowed");
     return;
    }
-
    await addAddress(form);
    alert("Address saved");
-
   }
 
   setForm({
@@ -160,26 +138,17 @@ const handleAdd = async()=>{
  }catch(err){
   alert("Failed to save address");
  }
-
 };
-
 
 /* DELETE */
-
 const handleDelete = async(id)=>{
-
  await deleteAddress(id);
  fetchAddresses();
-
 };
 
-
 /* CONFIRM ORDER */
-
 const confirmOrder = async()=>{
-
  try{
-
   setPlacing(true);
 
   await api.post("/orders",{
@@ -188,34 +157,24 @@ const confirmOrder = async()=>{
   });
 
   alert("Order placed successfully!");
-
   window.location.href="/customer/orders";
 
  }catch(err){
-
   console.log(err);
   alert("Failed to place order");
-
  }finally{
-
   setPlacing(false);
-
  }
-
 };
 
-
 /* LOCATION */
-
 const getLiveLocation = ()=>{
-
  if(!navigator.geolocation){
   alert("Geolocation not supported");
   return;
  }
 
  navigator.geolocation.getCurrentPosition(async(position)=>{
-
   const lat = position.coords.latitude;
   const lon = position.coords.longitude;
 
@@ -227,7 +186,6 @@ const getLiveLocation = ()=>{
   const addr = data.address;
 
   setForm(prev=>({
-
    ...prev,
    house_no:addr.house_number || "",
    street:addr.road || "",
@@ -237,20 +195,15 @@ const getLiveLocation = ()=>{
    pincode:addr.postcode || "",
    latitude:lat,
    longitude:lon
-
   }));
-
  });
-
 };
-
 
 return(
 
 <div className="space-y-10">
 
 {/* BACK ARROW */}
-
 <button
  onClick={()=>navigate("/cart")}
  className="absolute top-16 left-6 p-10 rounded-full hover:bg-gray-100 transition z-50"
@@ -258,18 +211,24 @@ return(
  <ArrowLeft className="w-6 h-6 text-gray-700"/>
 </button>
 
-
 <h1 className="text-3xl font-bold">Checkout</h1>
 
-
 {/* SAVED ADDRESSES */}
-
 <div className="space-y-4">
 
 {addresses.map(addr=>(
 
 <div
 key={addr.id}
+className={`p-6 border rounded-2xl ${
+selected===addr.id
+? "border-primary bg-primary/5"
+: "border-gray-200"
+}`}
+>
+
+{/* CLICK AREA */}
+<div
 onClick={()=>{
 
  setSelected(addr.id);
@@ -281,11 +240,7 @@ onClick={()=>{
  },200);
 
 }}
-className={`p-6 border rounded-2xl cursor-pointer ${
-selected===addr.id
-? "border-primary bg-primary/5"
-: "border-gray-200"
-}`}
+className="cursor-pointer"
 >
 
 <p className="font-semibold">{addr.full_name}</p>
@@ -297,13 +252,55 @@ selected===addr.id
 
 </div>
 
+{/* EDIT + DELETE BUTTONS */}
+<div className="flex gap-3 mt-4">
+
+<button
+onClick={(e)=>{
+ e.stopPropagation();
+
+ setForm({
+  full_name:addr.full_name,
+  phone:addr.phone,
+  house_no:addr.house_no,
+  street:addr.street,
+  locality:addr.locality,
+  landmark:addr.landmark,
+  city:addr.city,
+  state:addr.state,
+  pincode:addr.pincode,
+  latitude:addr.latitude,
+  longitude:addr.longitude
+ });
+
+ setEditingId(addr.id);
+
+ formRef.current?.scrollIntoView({behavior:"smooth"});
+}}
+className="text-sm px-4 py-1 border rounded-lg hover:bg-gray-100"
+>
+Edit
+</button>
+
+<button
+onClick={(e)=>{
+ e.stopPropagation();
+ handleDelete(addr.id);
+}}
+className="text-sm px-4 py-1 border rounded-lg text-red-500 hover:bg-red-50"
+>
+Delete
+</button>
+
+</div>
+
+</div>
+
 ))}
 
 </div>
 
-
 {/* ADDRESS FORM */}
-
 <div ref={formRef} className="space-y-4 border p-6 rounded-2xl">
 
 <h2 className="font-semibold text-lg">Add Delivery Address</h2>
@@ -360,37 +357,23 @@ Use Live Location
 
 </div>
 
-
-{/* PAYMENT SECTION */}
-
+{/* PAYMENT */}
 <div ref={paymentRef} className="border p-6 rounded-2xl space-y-4">
 
 <h2 className="font-semibold text-lg">Payment Method</h2>
 
 <label className="flex gap-3">
-
-<input
-type="radio"
-value="COD"
+<input type="radio" value="COD"
 checked={paymentMethod==="COD"}
-onChange={()=>setPaymentMethod("COD")}
-/>
-
+onChange={()=>setPaymentMethod("COD")}/>
 Cash on Delivery
-
 </label>
 
 <label className="flex gap-3">
-
-<input
-type="radio"
-value="ONLINE"
+<input type="radio" value="ONLINE"
 checked={paymentMethod==="ONLINE"}
-onChange={()=>setPaymentMethod("ONLINE")}
-/>
-
+onChange={()=>setPaymentMethod("ONLINE")}/>
 Online Payment
-
 </label>
 
 <button
@@ -398,79 +381,48 @@ onClick={placeOrder}
 disabled={!selected}
 className="bg-primary text-white px-8 py-3 rounded-xl w-full"
 >
-
 Place Order
-
 </button>
 
 </div>
 
-
-{/* ORDER OVERVIEW */}
-
+{/* OVERVIEW */}
 {showOverview && (
-
 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
 <div className="bg-white p-8 rounded-2xl w-[600px]">
 
-<h2 className="text-xl font-bold mb-4">
-Order Overview
-</h2>
+<h2 className="text-xl font-bold mb-4">Order Overview</h2>
 
 {cartItems.map(item=>(
-
 <div key={item.id} className="flex justify-between border-b py-2">
-
 <p>{item.title} (x{item.quantity})</p>
-
-<p>
-₹{
-(Number(item.price)*Number(item.quantity)) 
-}
-</p>
-
+<p>₹{Number(item.price)*Number(item.quantity)}</p>
 </div>
-
 ))}
 
 <div className="flex justify-between font-bold mt-4">
-
 <p>Total</p>
 <p>₹{totalAmount}</p>
-
 </div>
 
 <div className="flex gap-4 mt-6">
-
 <button
 onClick={()=>setShowOverview(false)}
-className="border px-6 py-2 rounded-xl"
->
-
+className="border px-6 py-2 rounded-xl">
 Back
-
 </button>
 
 <button
 onClick={confirmOrder}
-className="bg-primary text-white px-6 py-2 rounded-xl"
->
-
+className="bg-primary text-white px-6 py-2 rounded-xl">
 Confirm Order
-
 </button>
-
 </div>
 
 </div>
-
 </div>
-
 )}
 
 </div>
-
 );
-
 }

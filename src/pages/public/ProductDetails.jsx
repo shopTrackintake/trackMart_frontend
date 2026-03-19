@@ -18,7 +18,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity]   = useState(1);
   const [showPopup, setShowPopup] = useState(false);
   const [isAdded, setIsAdded]     = useState(false);
-
+const [selectedImage, setSelectedImage] = useState(null);
   // Button should show only when:
   // 1. Not logged in (role === null)  → show button, clicking redirects to login
   // 2. Logged in as customer          → show button, clicking adds to cart
@@ -92,7 +92,12 @@ export default function ProductDetails() {
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (!product) return <p className="text-center mt-10">Product not found</p>;
-
+const ingredientImages = product.ingredients_image_url
+  ? product.ingredients_image_url.split(",")
+  : [];
+  const ingredientList = product.ingredients
+  ? product.ingredients.split("\n")
+  : [];
   return (
     <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-10">
 
@@ -214,20 +219,78 @@ export default function ProductDetails() {
             </div>
 
           </div>
+{/* INGREDIENT IMAGES */}
 
+{ingredientImages.length > 0 && (
 
-          {/* DESCRIPTION */}
-          <div className="bg-bgSurface border border-borderDefault rounded-xl p-4 sm:p-5 shadow-card">
-            <h2 className="text-base sm:text-lg font-semibold text-black mb-2">
-              Description
-            </h2>
-            <p className="text-sm sm:text-base text-textStrong leading-relaxed">
-              {product.description}
-            </p>
-          </div>
+  <div className="mt-5">
 
+    <h3 className="text-sm font-semibold mb-2 text-textMuted">
+     Ingredients Overview
+    </h3>
+
+    <div className="flex gap-2 overflow-x-auto">
+
+      {ingredientImages.map((img, index) => (
+
+        <div
+          key={index}
+          className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm cursor-pointer hover:scale-110 transition"
+          onClick={() => setSelectedImage(img.trim())}
+        >
+          <img
+            src={img.trim()}
+            alt="ingredient"
+            className="w-full h-full object-cover"
+          />
         </div>
+
+      ))}
+
+    </div>
+{/* INGREDIENT LIST (COMPACT) */}
+
+{ingredientList.length > 0 && (
+
+  <div className="mt-4">
+
+    <h3 className="text-sm font-semibold mb-2 text-textMuted">
+      Key Ingredients
+    </h3>
+
+    <div className="flex flex-wrap gap-2">
+
+      {ingredientList.map((item, index) => (
+        <span
+          key={index}
+          className="px-3 py-1 text-xs sm:text-sm bg-gray-100 border border-gray-200 rounded-full text-textStrong"
+        >
+          {item}
+        </span>
+      ))}
+
+    </div>
+
+  </div>
+
+)}
+  </div>
+
+)}
       </div>
+        </div>
+       {/* DESCRIPTION */}
+
+<div className="bg-bgSurface border border-borderDefault rounded-xl p-4 sm:p-5 shadow-card w-full">
+  <h2 className="text-base sm:text-lg font-semibold text-black mb-2">
+    Description
+  </h2>
+  <p className="text-sm sm:text-base text-textStrong leading-relaxed">
+    {product.description}
+  </p>
+</div>
+
+        
 {/* HOW TO USE */}
 
 {product.how_to_use && (
@@ -307,19 +370,36 @@ export default function ProductDetails() {
   </div>
 
 )}
-      {/* VIEW CART POPUP */}
+     {/* POPUP */}
       {showPopup && (
-        <div className="fixed bottom-6 right-6 bg-white border border-borderDefault shadow-lg rounded-xl p-4 flex items-center gap-4 z-50">
-          <p className="text-sm font-medium">Item added to cart</p>
-          <button
-            onClick={() => navigate("/cart")}
-            className="bg-primary text-white px-4 py-1 rounded"
+        <div className="fixed bottom-6 right-6 bg-white p-4 shadow rounded">
+          <p>Item added to cart</p>
+          <button onClick={() => navigate("/cart")}>View Cart</button>
+        </div>
+      )}
+
+      {/* ✅ FLOATING IMAGE VIEW (FIXED) */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div
+            className="relative bg-white p-4 rounded-xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            View Cart
-          </button>
-          <button onClick={() => setShowPopup(false)} className="text-gray-500">
-            ✕
-          </button>
+            <img
+              src={selectedImage}
+              alt="full"
+              className="max-h-[80vh] max-w-[90vw]"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-2 right-2 bg-white px-2 py-1 rounded"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
