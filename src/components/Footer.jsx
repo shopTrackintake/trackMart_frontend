@@ -53,6 +53,7 @@ export default function Footer() {
               </a>
             </div>
 
+
             {/* SOCIAL ICONS */}
             <div className="flex justify-center sm:justify-start gap-5 mt-3">
               
