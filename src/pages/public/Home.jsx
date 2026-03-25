@@ -16,6 +16,7 @@ export default function Home() {
   const [categories,setCategories] = useState([]);
 
   const [cartItems,setCartItems] = useState([]);
+  
   const [wishlistIds,setWishlistIds] = useState([]);
 const [page, setPage] = useState(1);
 const limit = 8;// 9 products per page
@@ -34,34 +35,39 @@ const [totalPages, setTotalPages] = useState(1);
   const canAddToCart = role === null || role === "customer";
 const adsData = [
   {
-    title: "30% OFF",
-    desc: "Healthy snacks",
-    color: "orange",
-    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=100&q=80"
+    title: "20% OFF",
+    desc: "On Beverages",
+    code: "DRINK20",
+    image: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=200",
+    bg: "from-orange-200 to-orange-100"
   },
   {
-    title: "Nutrition+",
-    desc: "Wellness picks",
-    color: "blue",
-    image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=100&q=80"
+    title: "Buy 1 Get 1",
+    desc: "Free snacks",
+    code: "BOGO",
+    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200",
+    bg: "from-green-200 to-green-100"
   },
   {
-    title: "Flash Sale",
-    desc: "Ends today",
-    color: "yellow",
-    image: "https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=100&q=80"
+    title: "Flat ₹100 OFF",
+    desc: "Above ₹499",
+    code: "SAVE100",
+    image: "https://res.cloudinary.com/dsn1q7hyk/image/upload/v1774419499/love_mart_shopping_cart_feature_745da8fc-fbe5-4db8-a85b-2925b85dfb0c_om3y6b.jpg",
+    bg: "from-purple-200 to-purple-100"
   },
   {
-    title: "BOGO Deal",
-    desc: "Buy 1 Get 1",
-    color: "pink",
-    image: "https://images.unsplash.com/photo-1506617564039-2f3b650b7010?w=100&q=80"
+    title: "Flash Deal",
+    desc: "Ends tonight",
+    code: "FLASH",
+    image: "https://res.cloudinary.com/dsn1q7hyk/image/upload/v1774419499/9c0639b0-cc6c-4606-bdde-ce5b4ed91d9b_dujsc2.png",
+    bg: "from-yellow-200 to-yellow-100"
   },
   {
-    title: "Organic",
-    desc: "100% natural",
-    color: "green",
-    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=100&q=80"
+    title: "Organic Sale",
+    desc: "Healthy picks",
+    code: "HEALTH10",
+    image: "https://res.cloudinary.com/dsn1q7hyk/image/upload/v1774419499/Clinton-Foodmart_ktkl3m.jpg",
+    bg: "from-green-100 to-white"
   }
 ];
 const [adIndexes, setAdIndexes] = useState([0, 1, 2, 3]);
@@ -338,123 +344,125 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
               >→</button>
             </div>
           </div>
-
-        </div>
+</div>
+      
       </section>
+{/* SEARCH + FILTER BAR */}
+<section className="flex gap-6 items-center">
 
-      {/* SEARCH + FILTER BAR */}
-      <section className="flex gap-6 items-center justify-between">
-
-        {/* LEFT ADS — 2x2 grid with image */}
-        <div className="hidden md:grid grid-cols-2 gap-2 w-[260px] shrink-0">
-
-  {adIndexes.map((index, i) => {
-    const ad = adsData[index];
-
-    return (
-      <div
-        key={i}
-        className="relative h-[48px] rounded-lg overflow-hidden shadow-sm"
-      >
-
-        {/* IMAGE */}
-        <img
-          src={ad.image}
-          className="w-full h-full object-cover"
-        />
-
-        {/* OVERLAY */}
-        <div className="absolute inset-0 bg-black/40 flex flex-col justify-between px-2 py-1">
-
-          <div>
-            <p className="text-white text-[10px] font-semibold leading-tight">
-              {ad.title}
-            </p>
-            <p className="text-white text-[9px] opacity-90 leading-tight">
-              {ad.desc}
-            </p>
+  {/* LEFT ADS */}
+  <div className="hidden md:grid grid-cols-2 gap-2 w-[300px] shrink-0">
+    {adIndexes.map((index, i) => {
+      const ad = adsData[index];
+      return (
+        <div
+          key={i}
+          className={`relative h-[60px] rounded-xl overflow-hidden shadow-md bg-gradient-to-r ${ad.bg} flex items-center px-3 py-2`}
+        >
+          <img src={ad.image} className="w-10 h-10 rounded-lg object-cover" />
+          <div className="ml-3 flex-1 flex flex-col justify-center">
+            <p className="text-xs font-semibold">{ad.title}</p>
+            <p className="text-[10px] text-gray-700">{ad.desc}</p>
           </div>
-
           <button
             onClick={() => navigate("/products")}
-            className="bg-white text-black text-[9px] px-2 py-[2px] rounded w-fit"
+            className="bg-white text-black text-[9px] px-2 py-[2px] rounded shrink-0"
           >
             Shop
           </button>
-
+          <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
+          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
         </div>
+      );
+    })}
+  </div>
+{/* CENTER FILTERS */}
+<div className="flex flex-1 items-center justify-center">
 
-      </div>
-    );
-  })}
+  <div className="flex gap-2 items-center">
+
+    <div className="flex border border-default rounded-xl overflow-hidden">
+      <input
+        type="text"
+        placeholder="Search products..."
+        value={searchText}
+        onChange={(e)=>setSearchText(e.target.value)}
+        className="px-2 py-2 outline-none w-48"
+      />
+      <button
+        onClick={handleSearch}
+        className="bg-primary text-white px-4"
+      >
+        Search
+      </button>
+    </div>
+
+    <select
+      value={care}
+      onChange={(e)=>setCare(e.target.value)}
+      className="border border-default rounded-xl px-3 py-2"
+    >
+      <option value="">Care</option>
+      <option value="Skin Care">Skin Care</option>
+      <option value="Hair Care">Hair Care</option>
+      <option value="Digestive Care">Digestive Care</option>
+      <option value="Immunity Care">Immunity Care</option>
+    </select>
+
+    <select
+      value={concern}
+      onChange={(e)=>setConcern(e.target.value)}
+      className="border border-default rounded-xl px-3 py-2"
+    >
+      <option value="">Concern</option>
+      <option value="Immunity">Immunity</option>
+      <option value="Digestion">Digestion</option>
+      <option value="Skin Health">Skin Health</option>
+      <option value="Weight Loss">Weight Loss</option>
+    </select>
+
+    <select
+      value={sort}
+      onChange={(e)=>setSort(e.target.value)}
+      className="border border-default rounded-xl px-3 py-2"
+    >
+      <option value="featured">Featured</option>
+      <option value="price_low">Price Low → High</option>
+      <option value="price_high">Price High → Low</option>
+    </select>
+
+  </div>
 
 </div>
 
-        {/* SEARCH + FILTER */}
-        <div className="flex flex-nowrap overflow-x-auto gap-2 items-center flex-1">
-
-          <div className="flex border border-default rounded-xl overflow-hidden">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchText}
-              onChange={(e)=>setSearchText(e.target.value)}
-              className="px-2 py-2 outline-none w-72"
-            />
-            <button onClick={handleSearch} className="bg-primary text-white px-5">Search</button>
+  {/* RIGHT ADS */}
+  <div className="hidden md:flex flex-col gap-2 w-[220px] shrink-0">
+    {adIndexes.slice(2,4).map((index, i) => {
+      const ad = adsData[index];
+      return (
+        <div
+          key={i}
+          className={`relative h-[60px] rounded-xl overflow-hidden shadow-md bg-gradient-to-r ${ad.bg} flex items-center px-3 py-2`}
+        >
+          <img src={ad.image} className="w-10 h-10 rounded-lg object-cover" />
+          <div className="ml-3 flex-1 flex flex-col justify-center">
+            <p className="text-xs font-semibold">{ad.title}</p>
+            <p className="text-[10px] text-gray-700">{ad.desc}</p>
           </div>
-
-          <select value={care} onChange={(e)=>setCare(e.target.value)} className="border border-default rounded-xl px-3 py-2">
-            <option value="">Care</option>
-            <option value="Skin Care">Skin Care</option>
-            <option value="Hair Care">Hair Care</option>
-            <option value="Digestive Care">Digestive Care</option>
-            <option value="Immunity Care">Immunity Care</option>
-          </select>
-
-          <select value={concern} onChange={(e)=>setConcern(e.target.value)} className="border border-default rounded-xl px-3 py-2">
-            <option value="">Concern</option>
-            <option value="Immunity">Immunity</option>
-            <option value="Digestion">Digestion</option>
-            <option value="Skin Health">Skin Health</option>
-            <option value="Weight Loss">Weight Loss</option>
-          </select>
-
-          <div className="flex items-center gap-2">
-
-            <select value={sort} onChange={(e)=>setSort(e.target.value)} className="border border-default rounded-xl px-3 py-2">
-              <option value="featured">Featured</option>
-              <option value="price_low">Price Low → High</option>
-              <option value="price_high">Price High → Low</option>
-            </select>
-
-            {/* RIGHT ADS — 2 vertical with image */}
-            <div className="hidden md:flex flex-col gap-2">
-
-              <div className="flex items-center gap-0 bg-white border border-purple-200 rounded-xl overflow-hidden shadow-sm">
-                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&q=80" className="w-10 h-10 object-cover flex-shrink-0" />
-                <div className="px-3 py-2">
-                  <p className="text-xs font-bold text-purple-600 whitespace-nowrap">Best Nutrition</p>
-                  <p className="text-[10px] text-gray-400">Top rated</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-0 bg-white border border-green-200 rounded-xl overflow-hidden shadow-sm">
-                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=100&q=80" className="w-10 h-10 object-cover flex-shrink-0" />
-                <div className="px-3 py-2">
-                  <p className="text-xs font-bold text-green-600 whitespace-nowrap">Organic Picks</p>
-                  <p className="text-[10px] text-gray-400">100% natural</p>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
+          <button
+            onClick={() => navigate("/products")}
+            className="bg-white text-black text-[9px] px-2 py-[2px] rounded shrink-0"
+          >
+            Shop
+          </button>
+          <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
+          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
         </div>
+      );
+    })}
+  </div>
 
-      </section>
-
+</section>
       {/* SIDEBAR + PRODUCTS */}
       <section id="products-section" className="flex gap-10 h-[80vh] overflow-hidden">
 
@@ -518,7 +526,7 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
     {/* BUTTON */}
     <button
       onClick={() => navigate("/products")}
-      className="bg-white text-black text-[9px] px-2 py-[2px] rounded w-fit font-medium"
+      className="bg-white text-black text-[9px] px-2 py-[2px] rounded w-fit font-medium shrink-0"
     >
       {deal.btn}
     </button>
