@@ -10,7 +10,6 @@ import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorOrderDetails from "./pages/vendor/VendorOrderDetails";
 import VendorEarnings from "./pages/vendor/VendorEarnings";
 /* Public Pages */
-import Wishlist from "./pages/public/Wishlist";
 import Home from "./pages/public/Home";
 import Login from "./pages/public/Login";
 import RegisterCustomer from "./pages/public/RegisterCustomer";
@@ -36,6 +35,11 @@ import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import Orders from "./pages/customer/Orders";
 import Support from "./pages/customer/Support";
 import AdminSupport from "./pages/admin/AdminSupport";
+import PrivacyPolicy from "./pages/policies/PrivacyPolicy";
+import TermsOfService from "./pages/policies/TermsOfService";
+import RefundPolicy from "./pages/policies/RefundPolicy";
+import ShippingPolicy from "./pages/policies/ShippingPolicy";
+import Contact from "./pages/Contact";
 function App() {
   return (
     <BrowserRouter>
@@ -43,7 +47,6 @@ function App() {
 
         {/* ================= PUBLIC ================= */}
         <Route element={<PublicLayout />}>
-          <Route path="/wishlist" element={<Wishlist/>} />
   <Route index element={<Home />} />
   <Route path="login" element={<Login />} />
   <Route path="register" element={<RegisterCustomer />} />
@@ -51,6 +54,11 @@ function App() {
   <Route path="cart" element={<Cart />} />
   <Route path="checkout" element={<Checkout />} />
   <Route path="product/:id" element={<ProductDetails />} />
+  <Route path="privacy" element={<PrivacyPolicy />} />
+  <Route path="terms" element={<TermsOfService />} />
+  <Route path="refund" element={<RefundPolicy />} />
+  <Route path="shipping" element={<ShippingPolicy />} />
+  <Route path="contact" element={<Contact />} />
 </Route>
 {/* ================= CUSTOMER ================= */}
         <Route
