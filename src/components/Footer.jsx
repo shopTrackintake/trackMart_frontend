@@ -19,7 +19,7 @@ export default function Footer() {
     { label: "Dashboard", path: dashboardPath },
     { label: "Tools", path: dashboardPath },
     { label: "Profile", path: dashboardPath },
-    { label: "Health", path: dashboardPath },
+    { label: "Products", path: dashboardPath },
   ];
 
   const legalLinks = [
