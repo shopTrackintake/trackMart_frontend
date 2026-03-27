@@ -1,114 +1,128 @@
-import { Phone, Mail, Instagram, Youtube, Linkedin, Send } from "lucide-react";
+import React, { useContext } from "react";
+import { Facebook, Twitter, Instagram, Youtube, Linkedin, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext"; // path adjust karo
 
 export default function Footer() {
+
+  const { role } = useContext(AuthContext);
+
+  // 🔥 dynamic dashboard path
+  const dashboardPath =
+    role === "admin"
+      ? "/admin"
+      : role === "vendor"
+      ? "/vendor"
+      : "/customer";
+
+  const quickLinks = [
+    { label: "Dashboard", path: dashboardPath },
+    { label: "Tools", path: dashboardPath },
+    { label: "Profile", path: dashboardPath },
+    { label: "Products", path: dashboardPath },
+  ];
+
+  const legalLinks = [
+    { label: "Privacy Policy", path: "/privacy" },
+    { label: "Terms & Conditions", path: "/terms" },
+    { label: "Refund & Return Policy", path: "/refund" },
+    { label: "Shipping Policy", path: "/shipping" },
+    { label: "Contact", path: "/contact" },
+  ];
+
   return (
-    <footer className="bg-surface border-t border-default mt-10">
+    <footer className="bg-[var(--color-bg-surface)] border-t border-[var(--color-border-default)]">
       
-      {/* TOP SECTION */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 
-                      grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 
-                      gap-10 text-center sm:text-left">
-        
-        {/* LEFT - LINKS */}
-        <div className="flex flex-col items-center sm:items-start">
-          <div className="max-w-xs text-center sm:text-left">
-            
-            <h3 className="text-lg font-semibold mb-4 text-default">
+      <div className="max-w-7xl mx-auto px-6 py-14">
+        <div className="grid md:grid-cols-3 gap-12">
+
+          {/* LEFT */}
+          <div>
+            <h2 className="text-xl font-bold mb-4">
+              <span className="text-[var(--color-primary)]">Track</span>
+              <span className="text-[var(--color-text-strong)]">Mart</span>
+            </h2>
+
+            <p className="text-[var(--color-text-muted)] leading-7 mb-6 max-w-sm">
+              Your smart destination for seamless shopping — explore products, track orders, and enjoy a smooth, reliable experience every time.
+            </p>
+
+            {/* SOCIAL ICONS */}
+            <div className="flex gap-4">
+              
+              <a className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--color-border-default)] text-[var(--color-text-muted)] hover:text-blue-600 hover:border-blue-600 transition">
+                <Facebook size={18} />
+              </a>
+
+              <a className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--color-border-default)] text-[var(--color-text-muted)] hover:text-sky-500 hover:border-sky-500 transition">
+                <Twitter size={18} />
+              </a>
+
+              <a className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--color-border-default)] text-[var(--color-text-muted)] hover:text-pink-500 hover:border-pink-500 transition">
+                <Instagram size={18} />
+              </a>
+
+              <a className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--color-border-default)] text-[var(--color-text-muted)] hover:text-red-500 hover:border-red-500 transition">
+                <Youtube size={18} />
+              </a>
+
+              <a className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--color-border-default)] text-[var(--color-text-muted)] hover:text-blue-700 hover:border-blue-700 transition">
+                <Linkedin size={18} />
+              </a>
+
+            </div>
+          </div>
+
+          {/* QUICK LINKS */}
+          <div>
+            <h3 className="font-semibold mb-4 text-[var(--color-text-strong)]">
               Quick Links
             </h3>
 
-            <ul className="space-y-2 text-sm text-muted">
-              <li><Link to="/privacy" className="hover:text-primary transition">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-primary transition">Terms of Service</Link></li>
-              <li><Link to="/refund" className="hover:text-primary transition">Refunds & Returns</Link></li>
-              <li><Link to="/shipping" className="hover:text-primary transition">Shipping Policy</Link></li>
-              <li><Link to="/contact" className="hover:text-primary transition">Contact Us</Link></li>
+            <ul className="space-y-3 text-[var(--color-text-muted)]">
+              {quickLinks.map((item, i) => (
+                <li key={i}>
+                  <Link to={item.path} className="hover:text-[var(--color-primary)] transition">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-
           </div>
-        </div>
 
-        {/* CENTER - CONTACT */}
-        <div className="flex flex-col items-center sm:items-start">
-          <div className="max-w-xs text-center sm:text-left">
-
-            <h3 className="text-lg font-semibold mb-4 text-default">
-              Connect With Us
+          {/* LEGAL */}
+          <div>
+            <h3 className="font-semibold mb-4 text-[var(--color-text-strong)]">
+              Legal
             </h3>
 
-            {/* PHONE */}
-            <div className="flex items-center gap-2 text-sm text-muted mb-2 justify-center sm:justify-start">
-              <Phone size={16} className="shrink-0" />
-              <a href="tel:+919999999999" className="hover:text-primary transition">
-                +91 9999999999
-              </a>
-            </div>
-
-            {/* EMAIL */}
-            <div className="flex items-center gap-2 text-sm text-muted mb-4 justify-center sm:justify-start">
-              <Mail size={16} className="shrink-0" />
-              <a href="mailto:support@trackmart.com" className="hover:text-primary transition">
-                support@trackmart.com
-              </a>
-            </div>
-
-
-            {/* SOCIAL ICONS */}
-            <div className="flex justify-center sm:justify-start gap-5 mt-3">
-              
-              <a href="#" className="text-muted hover:text-pink-500 hover:scale-110 transition-all duration-300">
-                <Instagram size={20} />
-              </a>
-
-              <a href="#" className="text-muted hover:text-red-500 hover:scale-110 transition-all duration-300">
-                <Youtube size={20} />
-              </a>
-
-              <a href="#" className="text-muted hover:text-blue-600 hover:scale-110 transition-all duration-300">
-                <Linkedin size={20} />
-              </a>
-
-              <a href="#" className="text-muted hover:text-sky-500 hover:scale-110 transition-all duration-300">
-                <Send size={20} />
-              </a>
-
-            </div>
-
+            <ul className="space-y-3 text-[var(--color-text-muted)]">
+              {legalLinks.map((item, i) => (
+                <li key={i}>
+                  <Link to={item.path} className="hover:text-[var(--color-primary)] transition">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
+
         </div>
 
-        {/* RIGHT - COMPANY INFO */}
-        <div className="flex flex-col items-center sm:items-start">
-          <div className="max-w-xs text-center sm:text-left">
-
-            <h3 className="text-lg font-semibold mb-4 text-default">
-              Our Company
-            </h3>
-
-            <p className="text-sm text-muted leading-6">
-              TrackMart Pvt Ltd <br />
-              2nd Floor, Tech Park Building, <br />
-              Gomti Nagar Extension, <br />
-              Near Lulu Mall Road, <br />
-              Lucknow, Uttar Pradesh <br />
-              India - 226010
-            </p>
-
-          </div>
+        {/* BOTTOM */}
+        <div className="mt-12 pt-6 border-t border-dashed border-[var(--color-border-default)] text-center text-sm text-[var(--color-text-muted)]">
+          <p className="flex items-center justify-center gap-1 flex-wrap">
+            © {new Date().getFullYear()}{" "}
+            <span className="font-medium">
+              <span className="text-[var(--color-primary)]">Track</span>
+              <span className="text-[var(--color-text-strong)]">Mart</span>
+            </span>
+            . All rights reserved. Made with{" "}
+            <Heart className="w-4 h-4 text-red-500" fill="currentColor" />
+          </p>
         </div>
+
       </div>
-
-      {/* DIVIDER */}
-      <div className="border-t border-default"></div>
-
-      {/* BOTTOM */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-center text-sm text-muted text-center">
-        <p>
-          © 2026 TrackMart. All rights reserved.
-        </p>
-      </div>
-
     </footer>
   );
 }
