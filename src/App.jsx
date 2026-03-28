@@ -40,6 +40,7 @@ import TermsOfService from "./pages/policies/TermsOfService";
 import RefundPolicy from "./pages/policies/RefundPolicy";
 import ShippingPolicy from "./pages/policies/ShippingPolicy";
 import Contact from "./pages/Contact";
+import Profile from "./pages/Profile";
 function App() {
   return (
     <BrowserRouter>
@@ -48,6 +49,7 @@ function App() {
         {/* ================= PUBLIC ================= */}
         <Route element={<PublicLayout />}>
   <Route index element={<Home />} />
+  <Route path="/profile" element={<Profile />} />
   <Route path="login" element={<Login />} />
   <Route path="register" element={<RegisterCustomer />} />
   <Route path="apply-vendor" element={<ApplyVendor />} />
