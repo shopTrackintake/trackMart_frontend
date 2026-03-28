@@ -6,7 +6,7 @@ import { getCart, updateCartItem } from "../../services/cartService";
 import { getWishlist, toggleWishlist } from "../../services/wishlistService";
 import { Heart } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
-
+import { Lightbulb, ShoppingCart, BarChart3 } from "lucide-react";
 export default function Home() {
 
   const navigate = useNavigate();
@@ -52,21 +52,21 @@ const adsData = [
     title: "Flat ₹100 OFF",
     desc: "Above ₹499",
     code: "SAVE100",
-    image: "https://res.cloudinary.com/dsn1q7hyk/image/upload/v1774419499/love_mart_shopping_cart_feature_745da8fc-fbe5-4db8-a85b-2925b85dfb0c_om3y6b.jpg",
+    image: "https://images.unsplash.com/photo-1514361892635-cebbd25e6c04?w=200",
     bg: "from-purple-200 to-purple-100"
   },
   {
     title: "Flash Deal",
     desc: "Ends tonight",
     code: "FLASH",
-    image: "https://res.cloudinary.com/dsn1q7hyk/image/upload/v1774419499/9c0639b0-cc6c-4606-bdde-ce5b4ed91d9b_dujsc2.png",
+    image: "https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=200",
     bg: "from-yellow-200 to-yellow-100"
   },
   {
     title: "Organic Sale",
     desc: "Healthy picks",
     code: "HEALTH10",
-    image: "https://res.cloudinary.com/dsn1q7hyk/image/upload/v1774419499/Clinton-Foodmart_ktkl3m.jpg",
+    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200",
     bg: "from-green-100 to-white"
   }
 ];
@@ -164,6 +164,13 @@ const deal = dealsData[dealIndex];
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
+    if (link === "/about") {
+  const section = document.getElementById("about-section");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  return;
+}
     navigate(link);
   };
 
@@ -347,6 +354,59 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
 </div>
       
       </section>
+      {/* WHY CHOOSE TRACKMART */}
+<section id="about-section" className="bg-[#f5f1eb] py-20 px-6">
+
+  {/* HEADING */}
+  <div className="text-center max-w-3xl mx-auto mb-14">
+    <h2 className="text-4xl font-bold text-gray-800">
+      Why Choose <span className="text-primary">TrackMart?</span>
+    </h2>
+    <p className="text-gray-500 mt-4">
+      Smart shopping meets health awareness — TrackMart helps you choose better,
+      eat smarter, and live healthier every day.
+    </p>
+  </div>
+
+  {/* CARDS */}
+  <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+    {/* CARD 1 */}
+    <div className="bg-white rounded-2xl shadow-md p-8 text-center hover:shadow-xl hover:-translate-y-1 transition duration-300">
+      <Lightbulb className="w-10 h-10 text-primary mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-gray-800">
+        Smart Product Insights
+      </h3>
+      <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+        Get detailed health ratings and nutritional insights before buying any product.
+      </p>
+    </div>
+
+    {/* CARD 2 */}
+    <div className="bg-white rounded-2xl shadow-md p-8 text-center hover:shadow-xl hover:-translate-y-1 transition duration-300">
+      <ShoppingCart className="w-10 h-10 text-primary mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-gray-800">
+        Easy & Fast Shopping
+      </h3>
+      <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+        Browse, filter, and shop products effortlessly with a smooth experience.
+      </p>
+    </div>
+
+    {/* CARD 3 */}
+    <div className="bg-white rounded-2xl shadow-md p-8 text-center hover:shadow-xl hover:-translate-y-1 transition duration-300">
+      <BarChart3 className="w-10 h-10 text-primary mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-gray-800">
+        Health-Focused Choices
+      </h3>
+      <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+        Choose products based on your goals like immunity, digestion, or weight loss.
+      </p>
+    </div>
+
+  </div>
+
+</section>
 {/* SEARCH + FILTER BAR */}
 <section className="flex gap-6 items-center">
 
