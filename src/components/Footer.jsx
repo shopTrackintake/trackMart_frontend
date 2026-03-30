@@ -21,13 +21,16 @@ export default function Footer() {
     { label: "Profile", path: dashboardPath },
     { label: "Products", path: dashboardPath },
   ];
-
+const contactPath =
+  role === "admin"
+    ? "/admin/support"
+    : "/contact";
   const legalLinks = [
     { label: "Privacy Policy", path: "/privacy" },
     { label: "Terms & Conditions", path: "/terms" },
     { label: "Refund & Return Policy", path: "/refund" },
     { label: "Shipping Policy", path: "/shipping" },
-    { label: "Contact", path: "/contact" },
+    { label: role === "admin" ? "Support Panel" : "Contact", path: contactPath },
   ];
 
   return (
@@ -93,7 +96,7 @@ export default function Footer() {
           {/* LEGAL */}
           <div>
             <h3 className="font-semibold mb-4 text-[var(--color-text-strong)]">
-              Legal
+              Important links
             </h3>
 
             <ul className="space-y-3 text-[var(--color-text-muted)]">

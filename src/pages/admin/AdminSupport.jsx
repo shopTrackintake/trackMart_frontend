@@ -4,10 +4,18 @@ import api from "../../services/api";
 export default function AdminSupport(){
 
 const [tickets,setTickets] = useState([]);
-const [reply,setReply] = useState("");
+const [replyText, setReplyText] = useState({});
+const [messages, setMessages] = useState([]);
 
 useEffect(()=>{
-
+const fetchMessages = async () => {
+  try {
+    const res = await api.get("/contact");
+    setMessages(res.data);
+  } catch (err) {
+    console.log(err);
+  }
+};
 const fetchTickets = async()=>{
 
 try{
@@ -22,24 +30,37 @@ console.log(err);
 };
 
 fetchTickets();
+  fetchMessages();
 
 },[]);
 
 
 const sendReply = async(id)=>{
 
-try{
+  if (!replyText[id]) {
+    alert("Reply cannot be empty");
+    return;
+  }
 
-await api.post(`/support/admin/${id}/reply`,{reply});
+  try{
 
-alert("Reply sent");
+    await api.post(`/support/admin/${id}/reply`, {
+      reply: replyText[id]
+    });
 
-setReply("");
+    alert("Reply sent");
 
-}catch(err){
-console.log(err);
-}
+    setReplyText({
+      ...replyText,
+      [id]: ""
+    });
 
+    const res = await api.get("/support/admin");
+    setTickets(res.data);
+
+  }catch(err){
+    console.log(err);
+  }
 };
 
 
@@ -99,9 +120,14 @@ Admin Reply
 <div className="space-y-3">
 
 <textarea
-value={reply}
-placeholder="Write reply..."
-onChange={(e)=>setReply(e.target.value)}
+value={replyText[t.id] || ""}
+  
+onChange={(e)=>
+  setReplyText({
+    ...replyText,
+    [t.id]: e.target.value
+  })
+}
 className="w-full border border-borderDefault rounded-lg p-3"
 />
 
@@ -119,6 +145,45 @@ Send Reply
 </div>
 
 ))}
+  {/* ================= CONTACT MESSAGES ================= */}
+
+<div className="space-y-6 mt-10">
+
+  <h2 className="text-2xl font-semibold">
+    Contact Messages
+  </h2>
+
+  {messages.length === 0 && (
+    <p className="text-textMuted">
+      No contact messages
+    </p>
+  )}
+
+ {messages.map(msg => (
+
+  <div
+    key={msg.id}
+    className="bg-bgSurface border border-borderDefault rounded-xl p-6 space-y-4"
+  >
+
+    <div>
+      <h3 className="font-semibold text-lg">
+        {msg.name}
+      </h3>
+
+      <p className="text-textMuted text-sm">
+        {msg.email} {msg.phone && `(${msg.phone})`}
+      </p>
+    </div>
+
+    <p className="text-textStrong">
+      {msg.message}
+    </p>
+
+  </div>
+
+))}
+</div>
 
 </div>
 

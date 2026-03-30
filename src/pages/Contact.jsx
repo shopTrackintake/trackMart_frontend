@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   MapPin, 
@@ -10,17 +10,32 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import axios from "axios";
 const ContactPage = () => {
   const navigate = useNavigate();
-
+const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
   useEffect(() => {
     window.scrollTo({
       top: 0,
       behavior: 'instant'
     });
   }, []);
+ useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
 
+    if (user) {
+      setForm(prev => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || ""
+      }));
+    }
+  }, []);
   // Go back function
   const goBack = () => {
     navigate(-1);
@@ -45,7 +60,7 @@ const ContactPage = () => {
     {
       icon: <Mail className="w-6 h-6" />,
       label: "Email",
-      value: "it.trackintake@gmail.com",
+      value: "shop.trackintake@gmail.com",
       bgColor: "bg-amber-100 dark:bg-amber-900/20",
       textColor: "text-amber-600 dark:text-amber-400"
     },
@@ -66,9 +81,36 @@ const ContactPage = () => {
   ]; 
 
   // Form submit handler
-  const handleSubmit = (e) => {
+  
+  // ✅ SUBMIT FIX
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Message sent successfully!');
+
+    // validation
+    if (!form.name || !form.email || !form.message) {
+      alert("Please fill required fields");
+      return;
+    }
+
+    try {
+      await axios.post(
+        "https://trackmart-backend.onrender.com/api/contact",
+        form
+      );
+
+      alert("Message sent successfully!");
+
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        message: ""
+      });
+
+    } catch (err) {
+      alert("Error sending message");
+      console.log(err);
+    }
   };
 
   return (
@@ -142,10 +184,12 @@ const ContactPage = () => {
                   Your Name
                 </label>
                 <input
-                  type="text"
-                  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)]"
-                  placeholder="Enter your name"
-                />
+  type="text"
+  value={form.name}
+  onChange={(e)=>setForm({...form, name: e.target.value})}
+  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)]"
+  placeholder="Enter your name"
+/>
               </div>
 
               {/* Email Field */}
@@ -154,10 +198,12 @@ const ContactPage = () => {
                   Email Address
                 </label>
                 <input
-                  type="email"
-                  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)]"
-                  placeholder="Enter your email"
-                />
+  type="email"
+  value={form.email}
+  onChange={(e)=>setForm({...form, email: e.target.value})}
+  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)]"
+  placeholder="Enter your email"
+/>
               </div>
 
               {/* Phone Field */}
@@ -166,11 +212,12 @@ const ContactPage = () => {
                   Phone Number
                 </label>
                 <input
-                  type="tel"
-                //   defaultValue="+91 78986 22813"
-                  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)]"
-                  placeholder="Enter your phone number"
-                />
+  type="tel"
+  value={form.phone}
+  onChange={(e)=>setForm({...form, phone: e.target.value})}
+  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)]"
+  placeholder="Enter your phone number"
+/>
               </div>
 
               {/* Message Field */}
@@ -179,10 +226,12 @@ const ContactPage = () => {
                   Your Message
                 </label>
                 <textarea
-                  rows="4"
-                  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)] resize-none"
-                  placeholder="Type your message here..."
-                ></textarea>
+  rows="4"
+  value={form.message}
+  onChange={(e)=>setForm({...form, message: e.target.value})}
+  className="w-full px-4 py-3 bg-[var(--color-bg-page)] border-2 border-[var(--color-border-default)] rounded-xl focus:border-[var(--color-primary)] focus:outline-none transition-colors text-[var(--color-text-default)] resize-none"
+  placeholder="Type your message here..."
+></textarea>
               </div>
 
               {/* Submit Button */}
