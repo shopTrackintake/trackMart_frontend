@@ -39,7 +39,12 @@ const [form,setForm] = useState({
  latitude:"",
  longitude:""
 });
-
+useEffect(() => {
+  const script = document.createElement("script");
+  script.src = "https://checkout.razorpay.com/v1/checkout.js";
+  script.async = true;
+  document.body.appendChild(script);
+}, []);
 /* FETCH ADDRESSES */
 const fetchAddresses = async()=>{
  try{
@@ -79,12 +84,97 @@ useEffect(()=>{
 },[]);
 
 /* PLACE ORDER */
-const placeOrder = async()=>{
- if(!selected){
-  alert("Please select delivery address first.");
-  return;
- }
- setShowOverview(true);
+ const placeOrder = async () => {
+    if (!selected) {
+      alert("Please select delivery address first.");
+      return;
+    }
+    if (paymentMethod === "ONLINE") {
+      await handleRazorpay();
+    } else {
+      setShowOverview(true);
+    }
+  };
+
+  /* RAZORPAY HANDLER */
+  const handleRazorpay = async () => {
+  try {
+    setPlacing(true);
+
+    // ✅ STEP 1: Create DB Order FIRST
+    const orderRes = await api.post("/orders", {
+      address_id: selected,
+      payment_method: "ONLINE"
+    });
+
+    const dbOrderId = orderRes.data.order_id;
+
+    // ✅ STEP 2: Create Razorpay Order
+    const res = await api.post("/payment/create-order", {
+      amount: totalAmount
+    });
+
+    const { order } = res.data;
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: "INR",
+      name: "HealthMart",
+      order_id: order.id,
+handler: async function (response) {
+  try {
+
+    console.log("RAZORPAY RESPONSE:", response);
+
+    const verifyRes = await api.post("/payment/verify", {
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_signature: response.razorpay_signature
+    });
+
+    console.log("VERIFY RESPONSE:", verifyRes.data); // ✅ ADD
+
+    if (verifyRes.data.success) {
+
+      console.log("DB ORDER ID:", dbOrderId); // ✅ ADD
+
+      await api.patch("/orders/payment-status", {
+        order_id: dbOrderId,
+        payment_id: response.razorpay_payment_id
+      });
+
+      console.log("PAYMENT STATUS UPDATED"); // ✅ ADD
+
+      alert("Payment successful!");
+      window.location.href = "/customer/orders";
+
+    } else {
+      alert("Payment verification failed");
+    }
+
+  } catch (err) {
+    console.log("VERIFY ERROR:", err.response?.data); // ✅ ADD
+    alert("Verification error");
+  }
+},
+
+      modal: {
+        ondismiss: () => {
+          setPlacing(false);
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.log(err);
+    alert("Payment failed to start");
+  } finally {
+    setPlacing(false);
+  }
 };
 
 /* SAVE / UPDATE ADDRESS */

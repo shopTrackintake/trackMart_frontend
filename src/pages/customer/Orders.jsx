@@ -81,12 +81,21 @@ export default function Orders() {
 
       <div className="space-y-6">
 
-        {orders.map((order) => (
+        {orders.map((order) => {
 
-          <div
-            key={order.id}
-            className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-6"
-          >
+  const allDelivered =
+    order.items?.length > 0 &&
+    order.items.every(i => i.item_status === "delivered");
+
+  const anyConfirmed =
+    order.items?.some(i => i.item_status === "confirmed");
+
+  return (
+
+    <div
+      key={order.id}
+      className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-6"
+    >
 
             {/* ORDER HEADER */}
 
@@ -116,38 +125,27 @@ export default function Orders() {
             <div className="mb-4">
 
               <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  order.order_status === "delivered"
-                    ? "bg-green-200 text-green-800"
-                    : order.order_status === "confirmed"
-                    ? "bg-blue-200 text-blue-800"
-                    : "bg-yellow-200 text-yellow-800"
-                }`}
-              >
-
-                {order.order_status === "delivered"
-                  ? "Delivered"
-                  : order.order_status === "confirmed"
-                  ? "Confirmed"
-                  : "Pending"}
-
-              </span>
+  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+    allDelivered
+      ? "bg-green-200 text-green-800"
+      : anyConfirmed
+      ? "bg-blue-200 text-blue-800"
+      : "bg-yellow-200 text-yellow-800"
+  }`}
+>
+  {allDelivered
+    ? "Delivered"
+    : anyConfirmed
+    ? "Confirmed"
+    : "Pending"}
+</span>
 
             </div>
 
 
             {/* DELIVERY DATE */}
 
-            {order.delivery_date && (
-
-              <p className="text-sm text-gray-500 mb-4">
-
-                Expected Delivery:{" "}
-                {new Date(order.delivery_date).toLocaleDateString()}
-
-              </p>
-
-            )}
+           
 
 
             {/* ORDER ITEMS */}
@@ -161,17 +159,39 @@ export default function Orders() {
                   className="flex justify-between items-center border-t border-borderDefault pt-3"
                 >
 
-                  <div>
+                 <div>
 
-                    <p className="text-textStrong font-medium">
-                      {item.product_title}
-                    </p>
+  <p className="text-textStrong font-medium">
+    {item.product_title}
+  </p>
 
-                    <p className="text-textMuted text-sm">
-                      Qty: {item.quantity}
-                    </p>
+  <p className="text-textMuted text-sm">
+    Qty: {item.quantity}
+  </p>
 
-                  </div>
+  {/* ✅ ITEM STATUS */}
+  <p className={`text-xs font-semibold mt-1 ${
+    item.item_status === "delivered"
+      ? "text-green-600"
+      : item.item_status === "confirmed"
+      ? "text-blue-600"
+      : "text-yellow-600"
+  }`}>
+    {item.item_status === "delivered"
+      ? "Delivered"
+      : item.item_status === "confirmed"
+      ? "Confirmed"
+      : "Pending"}
+  </p>
+
+  {/* ✅ ITEM DELIVERY DATE */}
+  {item.delivery_date && (
+    <p className="text-xs text-gray-400">
+      Delivery: {new Date(item.delivery_date).toLocaleDateString()}
+    </p>
+  )}
+
+</div>
 
 
                   {/* HEALTH TAG */}
@@ -199,8 +219,8 @@ export default function Orders() {
             </div>
 
           </div>
-
-        ))}
+   );
+    })}
 
       </div>
 
