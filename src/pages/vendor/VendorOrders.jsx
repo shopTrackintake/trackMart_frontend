@@ -73,7 +73,11 @@ No orders received yet
 
 
 
-{orders.map(order=>(
+{orders.map(order => {
+
+  const status = order.item_status?.toLowerCase();  // 👈 ADD THIS
+
+  return (
 
 <div
 key={order.order_id}
@@ -104,20 +108,18 @@ Order ID: {order.order_id?.slice(0,8)}
 
 <span
 className={`px-3 py-1 rounded-full text-xs font-semibold ${
-order.order_status === "delivered"
-? "bg-green-200 text-green-800"
-: order.order_status === "confirmed"
-? "bg-blue-200 text-blue-800"
-: "bg-yellow-200 text-yellow-800"
+  status === "delivered"
+    ? "bg-green-200 text-green-800"
+    : status === "confirmed"
+    ? "bg-blue-200 text-blue-800"
+    : "bg-yellow-200 text-yellow-800"
 }`}
 >
-
-{order.order_status === "delivered"
-? "Delivered"
-: order.order_status === "confirmed"
-? "Confirmed"
-: "Pending"}
-
+{status === "delivered"
+  ? "Delivered"
+  : status === "confirmed"
+  ? "Confirmed"
+  : "Pending"}
 </span>
 
 </div>
@@ -160,8 +162,8 @@ View Details
 </div>
 
 </div>
-
-))}
+);
+    })}
 <Footer/>
 </div>
 

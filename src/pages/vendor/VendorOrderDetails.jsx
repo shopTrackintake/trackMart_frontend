@@ -41,66 +41,71 @@ fetchOrder();
 
 /* ================= CONFIRM ORDER ================= */
 
-const confirmOrder = async()=>{
+const confirmOrder = async () => {
+  try {
 
-try{
+    if (!date) {
+      alert("Please select delivery date");
+      return;
+    }
 
-if(!date){
-alert("Please select delivery date");
-return;
-}
+    const today = new Date().toISOString().split("T")[0];
 
-const today = new Date().toISOString().split("T")[0];
+    if (date < today) {
+      alert("Please select present or future date");
+      return;
+    }
 
-if(date < today){
-alert("Please select present or future date");
-return;
-}
+    // 🔥 get only pending items of THIS vendor
+    const pendingItems = items.filter(i => i.item_status === "pending");
 
-const res = await api.put(`/vendor/orders/${id}/confirm`,{
-delivery_date:date
-});
+    for (let item of pendingItems) {
+      await api.patch("/vendor/confirm-item", {
+        item_id: item.id,
+        delivery_date: date
+      });
+    }
 
-setOrder(res.data.order);
+    alert("Items confirmed");
 
-alert("Order confirmed");
+    fetchOrder();
 
-}catch(err){
-
-console.log(err);
-
-}
-
+  } catch (err) {
+    console.log(err);
+    alert("Failed to confirm");
+  }
 };
-
-
 
 /* ================= MARK DELIVERED ================= */
+const markDelivered = async () => {
+  try {
 
-const markDelivered = async()=>{
+    // 🔥 only confirmed items
+    const confirmedItems = items.filter(i => i.item_status === "confirmed");
 
-try{
+    for (let item of confirmedItems) {
+      await api.patch("/vendor/deliver-item", {
+        item_id: item.id
+      });
+    }
 
-const res = await api.put(`/vendor/orders/${id}/deliver`);
+    alert("Items delivered");
 
-setOrder(res.data.order);
+    fetchOrder();
 
-alert("Order delivered");
-
-}catch(err){
-
-console.log(err);
-
-}
-
+  } catch (err) {
+    console.log(err);
+    alert("Failed to update");
+  }
 };
-
 
 
 if(!order) return <p>Loading...</p>;
 
 
-
+const hasPending = items.some(i => i.item_status === "pending");
+const hasConfirmed = items.some(i => i.item_status === "confirmed");
+const allDelivered = items.every(i => i.item_status === "delivered");
 return(
 
 <div className="space-y-6">
@@ -118,23 +123,40 @@ Order Details
 Order ID: {order.id.slice(0,8)}
 </p>
 
-<span
-className={`px-3 py-1 rounded-full text-xs font-semibold ${
-order.order_status==="delivered"
-? "bg-green-200 text-green-800"
-: order.order_status==="confirmed"
-? "bg-blue-200 text-blue-800"
-: "bg-yellow-200 text-yellow-800"
-}`}
->
+{(() => {
 
-{order.order_status==="delivered"
-? "Delivered"
-: order.order_status==="confirmed"
-? "Confirmed"
-: "Pending"}
+  if (items.length === 0) {
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-600">
+        No Items
+      </span>
+    );
+  }
 
-</span>
+  const allDelivered = items.every(i => i.item_status === "delivered");
+  const anyDelivered = items.some(i => i.item_status === "delivered");
+  const anyConfirmed = items.some(i => i.item_status === "confirmed");
+
+  let status = "Pending";
+  let style = "bg-yellow-200 text-yellow-800";
+
+  if (allDelivered) {
+    status = "Delivered";
+    style = "bg-green-200 text-green-800";
+  } else if (anyDelivered) {
+    status = "Partially Delivered";
+    style = "bg-blue-200 text-blue-800";
+  } else if (anyConfirmed) {
+    status = "Confirmed";
+    style = "bg-blue-200 text-blue-800";
+  }
+
+  return (
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${style}`}>
+      {status}
+    </span>
+  );
+})()}
 
 </div>
 
@@ -220,8 +242,10 @@ className="border p-4 rounded-lg flex justify-between"
 {item.title}
 </p>
 
-<p className="text-sm text-gray-500">
-Qty: {item.quantity}
+<p className="text-xs text-gray-400">
+  Delivery: {item.delivery_date 
+    ? new Date(item.delivery_date).toLocaleDateString()
+    : "Not set"}
 </p>
 
 </div>
@@ -236,84 +260,59 @@ Qty: {item.quantity}
 
 </div>
 {/* ================= ACTION ================= */}
-
 <div className="border p-6 rounded-xl space-y-4">
 
-{/* DELIVERED */}
+{/* ✅ DELIVER BUTTON */}
 
-{order.order_status === "delivered" && (
-
-<div className="bg-green-100 p-4 rounded">
-
-<p className="text-green-700 font-semibold">
-Order Delivered
-</p>
-
-</div>
-
+{!hasPending && hasConfirmed && !allDelivered && (
+  <button
+    onClick={markDelivered}
+    className="bg-green-600 text-white px-6 py-2 rounded-xl"
+  >
+    Mark as Delivered
+  </button>
 )}
 
+{/* ✅ CONFIRM BUTTON */}
 
+{hasPending && (
+  <div className="space-y-3">
 
-{/* CONFIRMED */}
+    <p className="font-semibold">
+      Select Delivery Date
+    </p>
 
-{order.order_status === "confirmed" && (
+    <input
+      type="date"
+      value={date}
+      min={new Date().toISOString().split("T")[0]}
+      onChange={(e)=>setDate(e.target.value)}
+      className="border p-2 rounded w-full"
+    />
 
-<div className="space-y-3">
+    <button
+      onClick={confirmOrder}
+      className="bg-primary text-white px-6 py-2 rounded-xl"
+    >
+      Confirm Order
+    </button>
 
-<p className="text-blue-700 font-semibold">
-Order Confirmed
-</p>
-
-<p className="text-sm">
-Delivery Date: {order.delivery_date
-? new Date(order.delivery_date).toLocaleDateString()
-: "Not set"}
-</p>
-
-<button
-onClick={markDelivered}
-className="bg-green-600 text-white px-6 py-2 rounded-xl"
->
-Mark as Delivered
-</button>
-
-</div>
-
+  </div>
 )}
 
+{/* ✅ ALL DONE MESSAGE */}
 
+{allDelivered && (
+  <p className="text-green-600 font-semibold">
+    All items delivered
+  </p>
+)}
+
+</div>
 
 {/* PENDING / DEFAULT */}
 
-{order.order_status !== "confirmed" && order.order_status !== "delivered" && (
 
-<div className="space-y-3">
-
-<p className="font-semibold">
-Select Delivery Date
-</p>
-
-<input
-type="date"
-value={date}
-min={new Date().toISOString().split("T")[0]}
-onChange={(e)=>setDate(e.target.value)}
-className="border p-2 rounded w-full"
-/>
-
-<button
-onClick={confirmOrder}
-className="bg-primary text-white px-6 py-2 rounded-xl"
->
-Confirm Order
-</button>
-
-</div>
-
-)}
-
-</div>
 <Footer/>
 </div>
 

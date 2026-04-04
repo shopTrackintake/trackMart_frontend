@@ -100,7 +100,7 @@ className="border-b border-borderDefault hover:bg-bgSurfaceAlt transition"
 </td>
 
 <td className="px-6 py-4 font-semibold text-textStrong">
-₹{o.price_at_purchase}
+₹{o.price_at_purchase * o.quantity}
 </td>
 
 <td className="px-6 py-4">
