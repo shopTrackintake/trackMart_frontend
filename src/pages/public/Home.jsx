@@ -19,7 +19,7 @@ export default function Home() {
   
   const [wishlistIds,setWishlistIds] = useState([]);
 const [page, setPage] = useState(1);
-const limit = 8;// 9 products per page
+const [limit, setLimit] = useState(window.innerWidth < 768 ? 6 : 8);// 9 products per page
 const [totalPages, setTotalPages] = useState(1);
   const [category,setCategory] = useState("");
   const [care,setCare] = useState("");
@@ -203,7 +203,14 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
   }, [searchQuery, category, care, concern, price, sort, page,limit]);
 
   /* ================= FETCH CATEGORIES ================= */
+useEffect(() => {
+  const handleResize = () => {
+    setLimit(window.innerWidth < 768 ? 6 : 8);
+  };
 
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
   useEffect(()=>{
     const fetchCategories = async()=>{
       try{
@@ -285,75 +292,104 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
 
     <div className="space-y-16">
 
-      {/* HERO */}
-      <section className="relative w-full rounded-2xl overflow-hidden h-[480px]">
-        <div className="absolute inset-0 flex">
+     
+     {/* HERO */}
+<section className="relative w-full rounded-2xl overflow-hidden h-auto md:h-[480px]">
 
-          {/* LEFT — 30% text box */}
-          <div className="w-[30%] bg-surface-alt flex flex-col justify-center px-8 gap-5 border-r border-default">
+  <div className="flex flex-col md:flex-row h-full">
 
-            <div>
-              <span className="text-sm text-muted uppercase tracking-widest font-medium">
-                {heroData[heroIndex].tag}
-              </span>
-              <h1 className="text-4xl font-bold text-strong leading-tight mt-2">
-                {heroData[heroIndex].title}{" "}
-                <span className="text-primary">{heroData[heroIndex].highlight}</span>
-              </h1>
-            </div>
+    {/* LEFT — TEXT */}
+    <div className="w-full md:w-[30%] bg-surface-alt flex flex-col justify-center px-4 md:px-8 py-6 md:py-0 gap-4 md:gap-5 border-b md:border-b-0 md:border-r border-default">
 
-            <p className="text-base text-muted leading-relaxed">
-              {heroData[heroIndex].desc}
-            </p>
+      <div>
+        <span className="text-xs md:text-sm text-muted uppercase tracking-widest font-medium">
+          {heroData[heroIndex].tag}
+        </span>
 
-            <button
-              onClick={() => handleHeroCta(heroData[heroIndex].link)}
-              className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-semibold w-fit hover:bg-primaryHover transition text-base"
-            >
-              {heroData[heroIndex].cta}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
+        <h1 className="text-2xl md:text-4xl font-bold text-strong leading-tight mt-2">
+          {heroData[heroIndex].title}{" "}
+          <span className="text-primary">
+            {heroData[heroIndex].highlight}
+          </span>
+        </h1>
+      </div>
 
-            {/* DOTS */}
-            <div className="flex gap-2">
-              {heroData.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setHeroIndex(i)}
-                  className={`h-[3px] rounded transition-all duration-300 ${
-                    i === heroIndex ? "w-10 bg-primary" : "w-5 bg-default"
-                  }`}
-                />
-              ))}
-            </div>
+      <p className="text-sm md:text-base text-muted leading-relaxed">
+        {heroData[heroIndex].desc}
+      </p>
 
-          </div>
+      <button
+        onClick={() => handleHeroCta(heroData[heroIndex].link)}
+        className="flex items-center gap-2 bg-primary text-white px-4 md:px-6 py-2 md:py-3 rounded-full font-semibold w-fit hover:bg-primaryHover transition text-sm md:text-base"
+      >
+        {heroData[heroIndex].cta}
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </button>
 
-          {/* RIGHT — 70% pure image */}
-          <div className="w-[70%] relative">
-            <img
-              key={heroIndex}
-              src={heroData[heroIndex].image}
-              className="w-full h-full object-cover"
-            />
+      {/* DOTS */}
+      <div className="flex gap-2">
+        {heroData.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setHeroIndex(i)}
+            className={`h-[3px] rounded transition-all duration-300 ${
+              i === heroIndex
+                ? "w-10 bg-primary"
+                : "w-5 bg-default"
+            }`}
+          />
+        ))}
+      </div>
 
-            {/* ARROWS */}
-            <div className="absolute bottom-6 right-6 flex gap-2">
-              <button
-                onClick={() => setHeroIndex((heroIndex - 1 + heroData.length) % heroData.length)}
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md text-white text-base font-bold border border-white/30 hover:bg-white hover:text-black transition duration-300"
-              >←</button>
-              <button
-                onClick={() => setHeroIndex((heroIndex + 1) % heroData.length)}
-                className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md text-white text-base font-bold border border-white/30 hover:bg-white hover:text-black transition duration-300"
-              >→</button>
-            </div>
-          </div>
-</div>
-      
-      </section>
+    </div>
+
+    {/* RIGHT — IMAGE */}
+    <div className="w-full md:w-[70%] relative h-[250px] md:h-full">
+
+      <img
+        key={heroIndex}
+        src={heroData[heroIndex].image}
+        className="w-full h-full object-cover"
+      />
+
+      {/* ARROWS */}
+      <div className="absolute bottom-3 right-3 md:bottom-6 md:right-6 flex gap-2">
+        <button
+          onClick={() =>
+            setHeroIndex(
+              (heroIndex - 1 + heroData.length) %
+                heroData.length
+            )
+          }
+          className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md text-white text-sm md:text-base font-bold border border-white/30 hover:bg-white hover:text-black transition duration-300"
+        >
+          ←
+        </button>
+
+        <button
+          onClick={() =>
+            setHeroIndex((heroIndex + 1) % heroData.length)
+          }
+          className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md text-white text-sm md:text-base font-bold border border-white/30 hover:bg-white hover:text-black transition duration-300"
+        >
+          →
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
       {/* WHY CHOOSE TRACKMART */}
 <section id="about-section" className="bg-[#f5f1eb] py-20 px-6">
 
@@ -407,11 +443,12 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
   </div>
 
 </section>
-{/* SEARCH + FILTER BAR */}
-<section className="flex gap-6 items-center">
 
-  {/* LEFT ADS */}
-  <div className="hidden md:grid grid-cols-2 gap-2 w-[300px] shrink-0">
+{/* SEARCH + FILTER BAR */}
+<section className="flex flex-col md:flex-row gap-6 md:gap-10 md:px-0">
+
+  {/* 🔥 LEFT ADS */}
+  <div className="grid grid-cols-2 gap-2 w-full md:w-[300px] shrink-0 md:-ml-4">
     {adIndexes.map((index, i) => {
       const ad = adsData[index];
       return (
@@ -430,73 +467,74 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
           >
             Shop
           </button>
-          <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
-          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
         </div>
       );
     })}
   </div>
-{/* CENTER FILTERS */}
-<div className="flex flex-1 items-center justify-center">
 
-  <div className="flex gap-2 items-center">
+  {/* 🔥 CENTER SEARCH + FILTERS */}
+  <div className="flex flex-col md:flex-row flex-1 min-w-0 items-stretch md:items-center gap-3">
 
-    <div className="flex border border-default rounded-xl overflow-hidden">
+    {/* SEARCH */}
+    <div className="flex w-full md:w-auto border border-default rounded-xl overflow-hidden min-w-[200px]">
       <input
         type="text"
         placeholder="Search products..."
         value={searchText}
         onChange={(e)=>setSearchText(e.target.value)}
-        className="px-2 py-2 outline-none w-48"
+        className="px-3 py-2 outline-none flex-1 min-w-0"
       />
       <button
         onClick={handleSearch}
-        className="bg-primary text-white px-4"
+        className="bg-primary text-white px-4 shrink-0 whitespace-nowrap"
       >
         Search
       </button>
     </div>
 
-    <select
-      value={care}
-      onChange={(e)=>setCare(e.target.value)}
-      className="border border-default rounded-xl px-3 py-2"
-    >
-      <option value="">Care</option>
-      <option value="Skin Care">Skin Care</option>
-      <option value="Hair Care">Hair Care</option>
-      <option value="Digestive Care">Digestive Care</option>
-      <option value="Immunity Care">Immunity Care</option>
-    </select>
+    {/* FILTERS */}
+    <div className="flex flex-wrap md:flex-nowrap gap-2 w-full md:w-auto">
 
-    <select
-      value={concern}
-      onChange={(e)=>setConcern(e.target.value)}
-      className="border border-default rounded-xl px-3 py-2"
-    >
-      <option value="">Concern</option>
-      <option value="Immunity">Immunity</option>
-      <option value="Digestion">Digestion</option>
-      <option value="Skin Health">Skin Health</option>
-      <option value="Weight Loss">Weight Loss</option>
-    </select>
+      <select
+        value={care}
+        onChange={(e)=>setCare(e.target.value)}
+        className="border border-default rounded-xl px-3 py-2 w-full md:w-auto"
+      >
+        <option value="">Care</option>
+        <option value="Skin Care">Skin Care</option>
+        <option value="Hair Care">Hair Care</option>
+        <option value="Digestive Care">Digestive Care</option>
+        <option value="Immunity Care">Immunity Care</option>
+      </select>
 
-    <select
-      value={sort}
-      onChange={(e)=>setSort(e.target.value)}
-      className="border border-default rounded-xl px-3 py-2"
-    >
-      <option value="featured">Featured</option>
-      <option value="price_low">Price Low → High</option>
-      <option value="price_high">Price High → Low</option>
-    </select>
+      <select
+        value={concern}
+        onChange={(e)=>setConcern(e.target.value)}
+        className="border border-default rounded-xl px-3 py-2 w-full md:w-auto"
+      >
+        <option value="">Concern</option>
+        <option value="Immunity">Immunity</option>
+        <option value="Digestion">Digestion</option>
+        <option value="Skin Health">Skin Health</option>
+        <option value="Weight Loss">Weight Loss</option>
+      </select>
+
+      <select
+        value={sort}
+        onChange={(e)=>setSort(e.target.value)}
+        className="border border-default rounded-xl px-3 py-2 w-full md:w-auto"
+      >
+        <option value="featured">Featured</option>
+        <option value="price_low">Price Low → High</option>
+        <option value="price_high">Price High → Low</option>
+      </select>
+
+    </div>
 
   </div>
 
-</div>
-
-  {/* RIGHT ADS */}
-  <div className="hidden md:flex flex-col gap-2 w-[220px] shrink-0">
+  {/* 🔥 RIGHT ADS */}
+ <div className="flex flex-row md:flex-col gap-2 w-full md:w-[180px] shrink-0"> 
     {adIndexes.slice(2,4).map((index, i) => {
       const ad = adsData[index];
       return (
@@ -515,8 +553,6 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
           >
             Shop
           </button>
-          <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
-          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full"></div>
         </div>
       );
     })}
@@ -524,14 +560,14 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
 
 </section>
       {/* SIDEBAR + PRODUCTS */}
-      <section id="products-section" className="flex gap-10 h-[80vh] overflow-hidden">
+      <section id="products-section" className="flex flex-col md:flex-row gap-6 md:gap-6 items-start">
 
         {/* SIDEBAR */}
-        <aside className="w-64 sticky top-0 h-fit">
+        <aside className="w-full md:w-64 md:sticky md:top-0 h-fit p-4 md:p-0">
 
           <h3 className="font-semibold mb-4">Categories</h3>
 
-          <div className="space-y-2">
+          <div className="space-y-2 text-sm md:text-base">
             <label className="flex gap-2">
               <input type="radio" name="category" value="" checked={category===""} onChange={()=>setCategory("")} />
               All Products
@@ -555,7 +591,7 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
             type="range" min="0" max="1000" step="50"
             value={price}
             onChange={(e)=>setPrice(e.target.value)}
-            className="w-full"
+            className="w-full accent-primary"
           />
           <div className="flex justify-between text-sm text-gray-500 mt-2">
             <span>₹0</span>
@@ -610,8 +646,8 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
         </aside>
 
         {/* PRODUCTS GRID */}
-        <div className="flex-1 overflow-y-auto pr-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="flex-1 pr-2">
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-6">
 
             {loading ? (
               <div className="col-span-full text-center py-20 text-gray-500 text-lg">Loading products...</div>
@@ -623,10 +659,10 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
                 return(
                   <div
                     key={product.id}
-                    className="bg-white border border-gray-200 rounded-2xl shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition"
+                   className="bg-white border border-gray-200 rounded-2xl shadow-md p-2 sm:p-3 md:p-6 flex flex-col h-full"
                   >
                     {product.image_url && (
-                      <div className="relative h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
+                      <div className="relative h-24 sm:h-28 md:h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
                         <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain" />
                         {role==="customer" && (
                           <button
@@ -639,10 +675,10 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
                       </div>
                     )}
 
-                    <h3 className="font-primary text-lg font-semibold text-strong">{product.title}</h3>
-                    <p className="text-muted text-sm mt-2 line-clamp-2">{product.description}</p>
+                    <h3 className="font-primary text-sm sm:text-base md:text-lg font-semibold text-strong line-clamp-1">{product.title}</h3>
+                    <p className="text-muted text-xs sm:text-sm mt-1 line-clamp-2">{product.description}</p>
 
-                    <div className="mt-4 flex justify-between items-center">
+                    <div className="mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                       <span className="text-primary font-bold text-lg">₹{product.price}</span>
                       {product.health_rating && (
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -658,12 +694,12 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
                         {quantity===0 ? (
                           <button
                             onClick={()=>increaseQty(product)}
-                            className="bg-primary text-white w-full py-2 rounded-xl font-semibold hover:bg-primaryHover transition"
+                            className="bg-primary text-white w-full py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold"
                           >
                             Add to Cart
                           </button>
                         ) : (
-                          <div className="flex items-center justify-center gap-6 border border-gray-300 rounded-xl py-2">
+                          <div className="flex items-center justify-center gap-3 border border-gray-300 rounded-xl py-1.5">
                             <button onClick={()=>decreaseQty(product)} className="text-xl font-bold px-4">-</button>
                             <span className="font-semibold text-lg">{quantity}</span>
                             <button onClick={()=>increaseQty(product)} className="text-xl font-bold px-4">+</button>
@@ -674,8 +710,7 @@ setTotalPages(res.data.totalPages); // temporary  // backend se total pages });
 
                     <button
                       onClick={()=>navigate(`/product/${product.id}`)}
-                      className="mt-3 border border-primary text-primary w-full py-2 rounded-xl font-semibold hover:bg-primary hover:text-white transition"
-                    >
+                      className="mt-2 border border-primary text-primary w-full py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold"  >
                       View Details
                     </button>
 

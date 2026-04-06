@@ -26,21 +26,9 @@ console.log(err);
 
 };
 
-const fetchVendor = async()=>{
-
-try{
-
-const res = await api.get("/vendor/details");
-setVendor(res.data);
-
-}catch(err){
-console.log(err);
-}
-
-};
 
 fetchPayments();
-fetchVendor();
+
 
 },[]);
 

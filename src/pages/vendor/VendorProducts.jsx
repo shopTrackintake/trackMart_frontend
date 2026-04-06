@@ -55,7 +55,7 @@ export default function VendorProducts() {
 
         {/* PRODUCT GRID */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
 
 
           {products.map(p => (
@@ -68,10 +68,14 @@ export default function VendorProducts() {
 
               {/* IMAGE */}
 
-              <div className="h-40 bg-gray-50 flex items-center justify-center p-4">
+              <div className="h-32 bg-gray-50 flex items-center justify-center p-4">
 
                 <img
-                  src={p.image_url}
+                  src={
+                    p.image_url?.startsWith("http")
+                      ? p.image_url
+                      : `http://localhost:5000/uploads/${p.image_url}`
+                  }
                   alt={p.title}
                   className="max-h-full object-contain"
                 />

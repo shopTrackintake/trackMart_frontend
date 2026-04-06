@@ -8,16 +8,12 @@ const [orders,setOrders] = useState([]);
 useEffect(()=>{
 
 const fetchOrders = async()=>{
-
 try{
-
 const res = await api.get("/admin/orders");
 setOrders(res.data);
-
 }catch(err){
 console.log(err);
 }
-
 };
 
 fetchOrders();
@@ -41,26 +37,22 @@ return "bg-gray-100 text-gray-700";
 
 return(
 
-<div className="space-y-10">
+<div className="space-y-8 md:space-y-10">
 
 {/* Header */}
-
 <div>
-
-<h1 className="text-3xl font-primary font-bold text-textStrong">
+<h1 className="text-2xl md:text-3xl font-primary font-bold text-textStrong">
 Orders Management
 </h1>
 
-<p className="text-textMuted mt-2">
+<p className="text-textMuted mt-2 text-sm md:text-base">
 View and monitor all platform orders.
 </p>
-
 </div>
 
 
-{/* Orders Table */}
-
-<div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card overflow-hidden">
+{/* 🔥 DESKTOP TABLE */}
+<div className="hidden md:block bg-bgSurface border border-borderDefault rounded-2xl shadow-card overflow-hidden">
 
 <table className="w-full">
 
@@ -82,10 +74,8 @@ View and monitor all platform orders.
 
 {orders.map(o=>(
 
-<tr
-key={o.order_id}
-className="border-b border-borderDefault hover:bg-bgSurfaceAlt transition"
->
+<tr key={o.order_id}
+className="border-b border-borderDefault hover:bg-bgSurfaceAlt transition">
 
 <td className="px-6 py-4 font-semibold text-textStrong">
 {o.business_name}
@@ -118,6 +108,49 @@ className="border-b border-borderDefault hover:bg-bgSurfaceAlt transition"
 </tbody>
 
 </table>
+
+</div>
+
+
+{/* 🔥 MOBILE CARD VIEW */}
+<div className="md:hidden space-y-4">
+
+{orders.map(o=>(
+
+<div
+key={o.order_id}
+className="bg-bgSurface border border-borderDefault rounded-2xl p-4 shadow-card"
+>
+
+<div className="flex justify-between items-center">
+
+<h3 className="font-semibold text-textStrong">
+{o.product_name}
+</h3>
+
+<span className={`px-3 py-1 text-xs rounded-full ${getStatusBadge(o.order_status)}`}>
+{o.order_status}
+</span>
+
+</div>
+
+<p className="text-sm text-textMuted mt-2">
+Vendor: {o.business_name}
+</p>
+
+<div className="flex justify-between mt-3 text-sm">
+
+<span>Qty: {o.quantity}</span>
+
+<span className="font-semibold text-textStrong">
+₹{o.price_at_purchase * o.quantity}
+</span>
+
+</div>
+
+</div>
+
+))}
 
 </div>
 

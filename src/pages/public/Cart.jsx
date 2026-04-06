@@ -6,15 +6,11 @@ export default function Cart() {
   const [items, setItems] = useState([]);
   const navigate = useNavigate();
 
-  /* ================= FETCH CART ================= */
   const fetchCart = async () => {
     try {
       const res = await getCart();
-      
-      // Only keep items with quantity > 0
       const validItems = res.data.filter(item => item.quantity > 0);
       setItems(validItems);
-
     } catch (err) {
       console.log(err);
     }
@@ -24,10 +20,8 @@ export default function Cart() {
     fetchCart();
   }, []);
 
-  /* ================= INCREASE ================= */
   const increaseQty = async (item) => {
     await updateCartItem(item.id, 1);
-
     setItems(prev =>
       prev.map(p =>
         p.id === item.id
@@ -37,10 +31,8 @@ export default function Cart() {
     );
   };
 
-  /* ================= DECREASE ================= */
   const decreaseQty = async (item) => {
     await updateCartItem(item.id, -1);
-
     setItems(prev =>
       prev
         .map(p =>
@@ -52,121 +44,120 @@ export default function Cart() {
     );
   };
 
-  /* ================= REMOVE COMPLETELY ================= */
   const removeItem = async (item) => {
     await updateCartItem(item.id, -item.quantity);
-
-    setItems(prev =>
-      prev.filter(p => p.id !== item.id)
-    );
+    setItems(prev => prev.filter(p => p.id !== item.id));
   };
 
-  /* ================= TOTAL WITH DELIVERY ================= */
   const total = items.reduce(
-    (acc, item) =>
-      acc +
-      (Number(item.price) * item.quantity),
+    (acc, item) => acc + (Number(item.price) * item.quantity),
     0
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 md:space-y-10">
 
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-textStrong">
-          Your Cart
-        </h1>
-      </div>
+      <h1 className="text-2xl md:text-3xl font-bold text-textStrong">
+        Your Cart
+      </h1>
 
-      {/* EMPTY STATE */}
+      {/* EMPTY */}
       {items.length === 0 && (
-        <div className="bg-bgSurfaceAlt border border-borderDefault rounded-2xl p-8 text-center text-textMuted">
+        <div className="bg-bgSurfaceAlt border border-borderDefault rounded-2xl p-6 md:p-8 text-center text-textMuted">
           Your cart is empty.
         </div>
       )}
 
-      {/* CART ITEMS */}
+      {/* ITEMS */}
       {items.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
+
           {items.map((item) => (
+
             <div
               key={item.id}
-              className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-6 flex justify-between items-center"
+              className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 md:p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4"
             >
 
-              <div>
-                <h3 className="font-semibold text-lg text-textStrong">
+              {/* LEFT */}
+              <div className="space-y-2">
+
+                <h3 className="font-semibold text-base md:text-lg text-textStrong">
                   {item.title}
                 </h3>
 
-                <p className="text-sm text-textMuted mt-1">
+                <p className="text-sm text-textMuted">
                   ₹{item.price} each
                 </p>
 
-                <div className="flex items-center gap-4 mt-4">
+                {/* CONTROLS */}
+                <div className="flex flex-wrap items-center gap-3 mt-3">
 
                   <button
                     onClick={() => decreaseQty(item)}
-                    className="px-3 py-1 border rounded-lg font-bold"
+                    className="w-8 h-8 flex items-center justify-center border rounded-lg font-bold"
                   >
                     -
                   </button>
 
-                  <span className="font-semibold text-lg">
+                  <span className="font-semibold text-base md:text-lg">
                     {item.quantity}
                   </span>
 
                   <button
                     onClick={() => increaseQty(item)}
-                    className="px-3 py-1 border rounded-lg font-bold"
+                    className="w-8 h-8 flex items-center justify-center border rounded-lg font-bold"
                   >
                     +
                   </button>
 
                   <button
                     onClick={() => removeItem(item)}
-                    className="ml-6 text-red-500 text-sm font-semibold"
+                    className="text-red-500 text-sm font-semibold ml-2"
                   >
                     Remove
                   </button>
 
                 </div>
+
               </div>
 
-              {/* ITEM TOTAL WITH DELIVERY */}
-              <div className="text-xl font-bold text-primary">
-                ₹{
-                  (Number(item.price) * item.quantity) 
-                }
+              {/* RIGHT TOTAL */}
+              <div className="text-lg md:text-xl font-bold text-primary md:text-right">
+                ₹{Number(item.price) * item.quantity}
               </div>
 
             </div>
+
           ))}
+
         </div>
       )}
 
-      {/* TOTAL + CHECKOUT */}
+      {/* TOTAL */}
       {items.length > 0 && total > 0 && (
-        <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-8 flex justify-between items-center">
+
+        <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 md:p-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
 
           <div>
             <p className="text-textMuted text-sm">
               Total Amount
             </p>
-            <p className="text-3xl font-bold text-textStrong">
+            <p className="text-2xl md:text-3xl font-bold text-textStrong">
               ₹{total}
             </p>
           </div>
 
           <button
             onClick={() => navigate("/checkout")}
-            className="bg-primary text-white px-8 py-3 rounded-xl font-semibold hover:bg-primaryHover transition"
+            className="w-full md:w-auto h-12 px-6 md:px-8 flex items-center justify-center bg-primary text-white rounded-xl font-semibold hover:bg-primaryHover transition"
           >
             Proceed to Checkout
           </button>
 
         </div>
+
       )}
 
     </div>

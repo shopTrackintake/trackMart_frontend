@@ -15,6 +15,7 @@ import Login from "./pages/public/Login";
 import RegisterCustomer from "./pages/public/RegisterCustomer";
 import ApplyVendor from "./pages/public/ApplyVendor";
 import VendorProducts from "./pages/vendor/VendorProducts";
+import Wishlist from "./pages/public/Wishlist";
 /* Vendor Pages */
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import AddProduct from "./pages/vendor/AddProduct";
@@ -51,6 +52,7 @@ function App() {
   <Route index element={<Home />} />
   <Route path="/profile" element={<Profile />} />
   <Route path="login" element={<Login />} />
+ <Route path="/customer/wishlist" element={<Wishlist />} />
   <Route path="register" element={<RegisterCustomer />} />
   <Route path="apply-vendor" element={<ApplyVendor />} />
   <Route path="cart" element={<Cart />} />

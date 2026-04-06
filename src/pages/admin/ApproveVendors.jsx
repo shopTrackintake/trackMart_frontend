@@ -160,101 +160,76 @@ export default function ApproveVendors() {
 
         {vendors.map((v) => (
 
-          <div
-            key={v.id}
-            className="bg-bgSurface border border-borderDefault rounded-2xl p-6 shadow-card flex justify-between items-center"
-          >
+         
+<div
+  key={v.id}
+  className="bg-bgSurface border border-borderDefault rounded-2xl p-4 md:p-6 shadow-card 
+  flex flex-col md:flex-row md:justify-between md:items-center gap-4"
+>
 
-            {/* Vendor Info */}
+  {/* INFO */}
+  <div className="space-y-1">
 
-            <div>
+    <h3 className="font-primary font-semibold text-textStrong text-base md:text-lg">
+      {v.business_name}
+    </h3>
 
-              <h3 className="font-primary font-semibold text-textStrong text-lg">
-                {v.business_name}
-              </h3>
+    <p className="text-textMuted text-sm">
+      {v.email}
+    </p>
 
-              <p className="text-textMuted mt-1">
-                {v.email}
-              </p>
+    {/* STATUS */}
+    {v.kyc_status === "pending" && (
+      <span className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded-full mt-2 inline-block">
+        Pending
+      </span>
+    )}
 
+    {v.kyc_status === "hold" && (
+      <span className="text-xs px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full mt-2 inline-block">
+        Hold
+      </span>
+    )}
 
+    {v.kyc_status === "approved" && (
+      <span className="text-xs px-3 py-1 bg-green-200 text-green-800 rounded-full mt-2 inline-block">
+        Approved
+      </span>
+    )}
 
-              {/* STATUS BADGES */}
+  </div>
 
-              {v.kyc_status === "pending" && (
+  {/* BUTTONS */}
+  <div className="grid grid-cols-2 sm:flex gap-3 w-full md:w-auto">
 
-                <span className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded-full mt-2 inline-block">
-                  Pending
-                </span>
+    {v.kyc_status !== "approved" && (
+      <button
+        onClick={() => approveVendor(v.id)}
+        className="w-full sm:w-[140px] h-10 flex items-center justify-center bg-primary text-white rounded-xl font-semibold"
+      >
+        Approve
+      </button>
+    )}
 
-              )}
+    {v.kyc_status === "pending" && (
+      <button
+        onClick={() => holdVendor(v.id)}
+        className="w-full sm:w-[140px] h-10 flex items-center justify-center border border-warningText text-warningText rounded-xl font-semibold hover:bg-warningText hover:text-white"
+      >
+        Hold
+      </button>
+    )}
 
-              {v.kyc_status === "hold" && (
+    <button
+      onClick={() => deleteVendor(v.id)}
+      className="w-full sm:w-[140px] h-10 flex items-center justify-center border border-dangerText text-dangerText rounded-xl font-semibold hover:bg-dangerText hover:text-white"
+    >
+      Delete
+    </button>
 
-                <span className="text-xs px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full mt-2 inline-block">
-                  Hold
-                </span>
+  </div>
 
-              )}
-
-              {v.kyc_status === "approved" && (
-
-                <span className="text-xs px-3 py-1 bg-green-200 text-green-800 rounded-full mt-2 inline-block">
-                  Approved
-                </span>
-
-              )}
-
-            </div>
-
-
-
-            {/* BUTTONS */}
-
-            <div className="flex gap-4">
-
-              {/* APPROVE (only if not approved) */}
-
-              {v.kyc_status !== "approved" && (
-
-                <button
-                  onClick={() => approveVendor(v.id)}
-                  className="bg-primary text-white px-6 py-2 rounded-xl hover:bg-primaryHover transition font-semibold"
-                >
-                  Approve
-                </button>
-
-              )}
-
-
-
-              {/* HOLD only if pending */}
-
-              {v.kyc_status === "pending" && (
-
-                <button
-                  onClick={() => holdVendor(v.id)}
-                  className="border border-warningText text-warningText px-6 py-2 rounded-xl hover:bg-warningText hover:text-white transition font-semibold"
-                >
-                  Hold
-                </button>
-
-              )}
-
-
-
-              {/* DELETE always */}
-
-              <button
-                onClick={() => deleteVendor(v.id)}
-                className="border border-dangerText text-dangerText px-6 py-2 rounded-xl hover:bg-dangerText hover:text-white transition font-semibold"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
+</div>
 
         ))}
 

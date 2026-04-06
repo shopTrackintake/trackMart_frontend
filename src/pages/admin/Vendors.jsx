@@ -104,19 +104,21 @@ No vendors found
 <div className="space-y-6">
 
 {vendors.map(v=>(
+
 <div
 key={v.id}
 onClick={()=>navigate(`/admin/vendors/${v.id}`)}
-className="bg-bgSurface border border-borderDefault rounded-2xl p-6 shadow-card flex justify-between items-center cursor-pointer hover:bg-bgSurfaceAlt"
+className="bg-bgSurface border border-borderDefault rounded-2xl p-4 md:p-6 shadow-card cursor-pointer hover:bg-bgSurfaceAlt flex flex-col md:flex-row md:justify-between md:items-center gap-4"
 >
 
-<div>
+{/* LEFT */}
+<div className="space-y-1">
 
-<h3 className="font-primary font-semibold text-textStrong text-lg">
+<h3 className="font-primary font-semibold text-textStrong text-base md:text-lg">
 {v.business_name}
 </h3>
 
-<p className="text-textMuted mt-1">
+<p className="text-textMuted text-sm">
 {v.email}
 </p>
 
@@ -126,14 +128,15 @@ Approved
 
 </div>
 
-<div>
+{/* RIGHT BUTTON */}
+<div className="w-full md:w-auto">
 
 <button
 onClick={(e)=>{
 e.stopPropagation();
 deleteVendor(v.id);
 }}
-className="border border-dangerText text-dangerText px-6 py-2 rounded-xl hover:bg-dangerText hover:text-white transition font-semibold"
+className="w-full md:w-[140px] h-10 flex items-center justify-center border border-dangerText text-dangerText rounded-xl font-semibold hover:bg-dangerText hover:text-white"
 >
 Delete
 </button>
