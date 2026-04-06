@@ -1,24 +1,22 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getWishlist, removeWishlist } from "../../services/wishlistService";
 import { updateCartItem } from "../../services/cartService";
 
 export default function Wishlist(){
 
 const [items,setItems] = useState([]);
+const navigate = useNavigate();
 
 useEffect(()=>{
 
 const fetchWishlist = async()=>{
 
 try{
-
 const res = await getWishlist();
 setItems(res.data);
-
 }catch(err){
-
 console.log(err);
-
 }
 
 };
@@ -29,39 +27,26 @@ fetchWishlist();
 
 
 /* REMOVE */
-
 const removeItem = async(id)=>{
-
 try{
-
 await removeWishlist(id);
-
 setItems(prev=>prev.filter(i=>i.wishlist_id !== id));
-
 }catch(err){
-
 console.log(err);
-
 }
-
 };
 
 
 /* ADD TO CART */
-
 const addToCart = async (item) => {
   try {
 
-    /* ADD TO CART */
     await updateCartItem(item.id, 1);
 
-    /* ALERT */
     alert("Item added to cart");
 
-    /* REMOVE FROM WISHLIST */
     await removeWishlist(item.wishlist_id);
 
-    /* UPDATE UI */
     setItems(prev =>
       prev.filter(i => i.wishlist_id !== item.wishlist_id)
     );
@@ -74,50 +59,65 @@ const addToCart = async (item) => {
 
 return(
 
-<div className="max-w-6xl mx-auto space-y-10">
+<div className="max-w-6xl mx-auto px-4 md:px-0 space-y-8 md:space-y-10">
 
-<h1 className="text-3xl font-bold">
+{/* 🔙 BACK BUTTON + TITLE */}
+<div className="flex items-center gap-3">
+
+<button
+onClick={()=>navigate("/")}
+className="w-10 h-10 flex items-center justify-center rounded-full border border-borderDefault hover:bg-bgSurfaceAlt transition"
+>
+←
+</button>
+
+<h1 className="text-2xl md:text-3xl font-bold">
 My Wishlist
 </h1>
+
+</div>
+
 
 {items.length===0 && (
 <div>No items in wishlist</div>
 )}
 
-<div className="grid md:grid-cols-3 gap-8">
+
+{/* ✅ GRID FIX */}
+<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
 
 {items.map(item=>(
 
 <div
 key={item.wishlist_id}
-className="border rounded-xl p-6 shadow"
+className="border rounded-xl p-4 md:p-6 shadow flex flex-col"
 >
 
 <img
 src={item.image_url}
-className="h-40 object-contain mx-auto"
+className="h-28 md:h-40 object-contain mx-auto"
 />
 
-<h3 className="font-semibold mt-4">
+<h3 className="font-semibold mt-3 md:mt-4 text-sm md:text-base line-clamp-1">
 {item.title}
 </h3>
 
-<p className="text-primary font-bold">
+<p className="text-primary font-bold text-sm md:text-base">
 ₹{item.price}
 </p>
 
-<div className="flex gap-3 mt-4">
+<div className="flex flex-col sm:flex-row gap-2 mt-3 md:mt-4">
 
 <button
 onClick={()=>addToCart(item)}
-className="bg-primary text-white px-4 py-2 rounded"
+className="bg-primary text-white w-full sm:w-auto px-3 md:px-4 py-2 rounded text-sm"
 >
 Add to Cart
 </button>
 
 <button
 onClick={()=>removeItem(item.wishlist_id)}
-className="border px-4 py-2 rounded"
+className="border w-full sm:w-auto px-3 md:px-4 py-2 rounded text-sm"
 >
 Remove
 </button>

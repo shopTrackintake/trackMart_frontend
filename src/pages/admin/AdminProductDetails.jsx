@@ -37,33 +37,28 @@ typeof product.benefits === "string"
 
 return(
 
-<div className="max-w-5xl mx-auto space-y-8">
 
-<h1 className="text-3xl font-bold">
+<div className="max-w-6xl mx-auto space-y-6 md:space-y-8 px-4">
+
+<h1 className="text-2xl md:text-3xl font-bold">
 Product Details
 </h1>
 
+<div className="bg-bgSurface border border-borderDefault rounded-2xl p-4 md:p-8 space-y-6 md:space-y-8">
 
-<div className="bg-bgSurface border border-borderDefault rounded-2xl p-8 space-y-8">
-
-
-{/* IMAGE + BASIC INFO */}
-
-<div className="grid md:grid-cols-2 gap-8">
+{/* IMAGE + INFO */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
 <img
 src={product.image_url}
-className="w-full max-w-sm rounded-xl"
+className="w-full max-w-xs mx-auto md:mx-0 rounded-xl object-contain"
 />
-
 
 <div className="space-y-3">
 
-<h2 className="text-2xl font-semibold">
+<h2 className="text-xl md:text-2xl font-semibold">
 {product.title}
 </h2>
-
-{/* PRODUCT STATUS */}
 
 {product.status === "inactive" && (
 <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-dangerText">
@@ -71,15 +66,13 @@ Product Removed
 </span>
 )}
 
-<p className="text-textMuted">
+<p className="text-textMuted text-sm">
 Vendor: {product.business_name}
 </p>
 
 <p className="text-lg font-semibold">
 ₹{product.price}
 </p>
-
-
 
 <p className="text-sm text-textMuted">
 Category: {product.category_name || product.category_id}
@@ -89,205 +82,171 @@ Category: {product.category_name || product.category_id}
 Size: {product.size}
 </p>
 
-
 {/* STOCK */}
-
-<div className="flex items-center gap-3">
+<div className="flex flex-wrap items-center gap-3">
 
 <span className="text-sm text-textMuted">
 Stock: {product.stock}
 </span>
 
 {product.stock === 0 ? (
-<span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-dangerText">
+<span className="px-3 py-1 rounded-full text-xs bg-red-100 text-dangerText">
 Out of Stock
 </span>
 ) : product.stock < 5 ? (
-<span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-warningText">
+<span className="px-3 py-1 rounded-full text-xs bg-orange-100 text-warningText">
 Low Stock
 </span>
 ) : (
-<span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-successText">
+<span className="px-3 py-1 rounded-full text-xs bg-green-100 text-successText">
 In Stock
 </span>
-              )}
+)}
 
-            </div>
+</div>
 
-       
-
-        {/* ✅ INGREDIENT LABEL (FULL WIDTH) */}
-        {product.ingredients_image_url && (
-
-          <div className="relative">
-
-            <h3 className="font-semibold text-lg">
-              Ingredients Label
-            </h3>
-
-            <div className="flex gap-2 mt-3">
-
-              {product.ingredients_image_url.split(",").map((img, i) => (
-
-                <div
-                  key={i}
-                  className="w-12 h-12 rounded-lg overflow-hidden border cursor-pointer"
-                  onClick={() => setSelectedImage(img.trim())}
-                >
-                  <img
-                    src={img.trim()}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-              ))}
-
-            </div>
-
-            {/* FLOATING OVERLAY */}
-            {selectedImage && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-xl z-10">
-
-                <div className="relative">
-
-                  <img
-                    src={selectedImage}
-                    className="max-h-[200px] object-contain rounded-lg"
-                  />
-
-                  <button
-                    onClick={() => setSelectedImage(null)}
-                    className="absolute top-1 right-1 bg-white rounded-full px-2 text-sm"
-                  >
-                    ✕
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-          </div>
-
-        )}
-
-        {/* ✅ KEY INGREDIENTS */}
-        {product.ingredients && (
-
-          <div className="mt-4">
-
-            <h3 className="font-semibold text-lg">
-              Key Ingredients
-            </h3>
-
-            <div className="flex flex-wrap gap-2 mt-2">
-
-              {product.ingredients.split("\n").map((item, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 text-sm bg-gray-100 border rounded-full"
-                >
-                  {item}
-                </span>
-              ))}
-
-            </div>
-
-          </div>
-
-        )}
-   </div>
-
-        </div>
-{/* DESCRIPTION */}
+{/* INGREDIENT IMAGES */}
+{product.ingredients_image_url && (
 
 <div>
 
-<h3 className="font-semibold text-lg">
-Description
+<h3 className="font-semibold text-base md:text-lg">
+Ingredients Label
 </h3>
 
-<p className="text-textMuted mt-2">
-{product.description}
-</p>
+<div className="flex flex-wrap gap-2 mt-3">
 
+{product.ingredients_image_url.split(",").map((img, i) => (
+
+<div
+key={i}
+className="w-12 h-12 rounded-lg overflow-hidden border cursor-pointer"
+onClick={() => setSelectedImage(img.trim())}
+>
+<img
+src={img.trim()}
+className="w-full h-full object-cover"
+/>
 </div>
 
-
-{/* NUTRITION */}
-
-<div>
-
-<h3 className="font-semibold text-lg mb-4">
-Nutrition Information
-</h3>
-
-<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-
-<div className="bg-yellow-100 p-3 rounded text-center">
-Calories
-<br/>
-<strong>{product.calories}</strong>
-</div>
-
-<div className="bg-green-100 p-3 rounded text-center">
-Protein
-<br/>
-<strong>{product.protein} g</strong>
-</div>
-
-<div className="bg-orange-100 p-3 rounded text-center">
-Fat
-<br/>
-<strong>{product.fat} g</strong>
-</div>
-
-<div className="bg-blue-100 p-3 rounded text-center">
-Sugar
-<br/>
-<strong>{product.sugar} g</strong>
-</div>
-
-</div>
-
-</div>
-
-
-
-{/* HOW TO USE */}
-
-{product.how_to_use && (
-
-<div>
-
-<h3 className="font-semibold text-lg">
-How to Use
-</h3>
-
-<ul className="list-disc pl-6 mt-2 space-y-1 text-textMuted">
-
-{product.how_to_use.split("\n").map((item,i)=>(
-<li key={i}>{item}</li>
 ))}
 
-</ul>
+</div>
+
+{selectedImage && (
+<div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+
+<div className="relative bg-white p-2 rounded-lg">
+
+<img
+src={selectedImage}
+className="max-h-[300px] object-contain"
+/>
+
+<button
+onClick={() => setSelectedImage(null)}
+className="absolute top-1 right-1 bg-white rounded-full px-2"
+>
+✕
+</button>
+
+</div>
+
+</div>
+)}
 
 </div>
 
 )}
 
+{/* INGREDIENT TAGS */}
+{product.ingredients && (
 
-{/* MAKING PROCESS */}
+<div>
 
+<h3 className="font-semibold text-base md:text-lg">
+Key Ingredients
+</h3>
+
+<div className="flex flex-wrap gap-2 mt-2">
+
+{product.ingredients.split("\n").map((item, i) => (
+<span
+key={i}
+className="px-3 py-1 text-xs md:text-sm bg-gray-100 border rounded-full"
+>
+{item}
+</span>
+))}
+
+</div>
+
+</div>
+
+)}
+
+</div>
+
+</div>
+
+{/* DESCRIPTION */}
+<div>
+<h3 className="font-semibold text-base md:text-lg">
+Description
+</h3>
+<p className="text-textMuted mt-2 text-sm md:text-base">
+{product.description}
+</p>
+</div>
+
+{/* NUTRITION */}
+<div>
+<h3 className="font-semibold text-base md:text-lg mb-4">
+Nutrition Information
+</h3>
+
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 text-sm">
+
+<div className="bg-yellow-100 p-3 rounded text-center">
+Calories<br/><strong>{product.calories}</strong>
+</div>
+
+<div className="bg-green-100 p-3 rounded text-center">
+Protein<br/><strong>{product.protein} g</strong>
+</div>
+
+<div className="bg-orange-100 p-3 rounded text-center">
+Fat<br/><strong>{product.fat} g</strong>
+</div>
+
+<div className="bg-blue-100 p-3 rounded text-center">
+Sugar<br/><strong>{product.sugar} g</strong>
+</div>
+
+</div>
+</div>
+
+{/* HOW TO USE */}
+{product.how_to_use && (
+<div>
+<h3 className="font-semibold text-base md:text-lg">How to Use</h3>
+<ul className="list-disc pl-6 mt-2 space-y-1 text-sm md:text-base text-textMuted">
+{product.how_to_use.split("\n").map((item,i)=>(
+<li key={i}>{item}</li>
+))}
+</ul>
+</div>
+)}
+  {/* MAKING PROCESS */}
 {product.making_process && (
 
 <div>
 
-<h3 className="font-semibold text-lg">
+<h3 className="font-semibold text-base md:text-lg">
 Making Process
 </h3>
 
-<ul className="list-disc pl-6 mt-2 space-y-1 text-textMuted">
+<ul className="list-disc pl-6 mt-2 space-y-1 text-sm md:text-base text-textMuted">
 
 {product.making_process.split("\n").map((item,i)=>(
 <li key={i}>{item}</li>
@@ -299,38 +258,32 @@ Making Process
 
 )}
 
-
 {/* BENEFITS */}
-
 {benefits && benefits.length > 0 && (
 
 <div>
 
-<h3 className="font-semibold text-lg mb-4">
+<h3 className="font-semibold text-base md:text-lg mb-4">
 Benefits
 </h3>
 
-<div className="grid md:grid-cols-3 gap-6">
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
 
 {benefits.map((b,i)=>(
 
-<div
-key={i}
-className="border border-borderDefault rounded-xl overflow-hidden shadow-sm"
->
+<div key={i}
+className="border border-borderDefault rounded-xl overflow-hidden shadow-sm">
 
-<img
-src={b.image}
-className="w-full h-40 object-cover"
-/>
+<img src={b.image}
+className="w-full h-36 md:h-40 object-cover"/>
 
-<div className="p-4">
+<div className="p-3 md:p-4">
 
-<h4 className="font-semibold">
+<h4 className="font-semibold text-sm md:text-base">
 {b.title}
 </h4>
 
-<p className="text-sm text-textMuted mt-1">
+<p className="text-xs md:text-sm text-textMuted mt-1">
 {b.description}
 </p>
 
