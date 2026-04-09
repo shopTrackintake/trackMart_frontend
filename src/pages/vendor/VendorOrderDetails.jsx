@@ -10,7 +10,8 @@ const [order,setOrder] = useState(null);
 const [items,setItems] = useState([]);
 const [date,setDate] = useState("");
 const [showFullAddress,setShowFullAddress] = useState(false);
-
+const [otp, setOtp] = useState("");
+const [askOtp, setAskOtp] = useState(false);
 
 /* ================= FETCH ORDER ================= */
 
@@ -40,7 +41,6 @@ fetchOrder();
 
 
 /* ================= CONFIRM ORDER ================= */
-
 const confirmOrder = async () => {
   try {
 
@@ -56,49 +56,68 @@ const confirmOrder = async () => {
       return;
     }
 
-    // 🔥 get only pending items of THIS vendor
     const pendingItems = items.filter(i => i.item_status === "pending");
 
-    for (let item of pendingItems) {
-      await api.patch("/vendor/confirm-item", {
-        item_id: item.id,
-        delivery_date: date
-      });
+    const item = pendingItems[0];
+
+    if (!item) {
+      alert("No pending item found");
+      return;
     }
 
-    alert("Items confirmed");
+    await api.patch("/vendor/confirm-item", {
+      item_id: item.id,
+      delivery_date: date
+    });
+
+    alert("Item confirmed & OTP sent");
 
     fetchOrder();
 
   } catch (err) {
     console.log(err);
-    alert("Failed to confirm");
+    alert(err.response?.data?.message || "Failed to confirm");
   }
 };
 
 /* ================= MARK DELIVERED ================= */
-const markDelivered = async () => {
+const handleDeliverClick = async () => {
+
+  if (!askOtp) {
+    setAskOtp(true);
+    return;
+  }
+
   try {
 
-    // 🔥 only confirmed items
-    const confirmedItems = items.filter(i => i.item_status === "confirmed");
-
-    for (let item of confirmedItems) {
-      await api.patch("/vendor/deliver-item", {
-        item_id: item.id
-      });
+    if (!otp) {
+      alert("Please enter OTP");
+      return;
     }
 
-    alert("Items delivered");
+    const item = items.find(i => i.item_status === "confirmed");
 
+    if (!item) {
+      alert("No confirmed item found");
+      return;
+    }
+
+    await api.patch("/vendor/deliver-item", {
+      item_id: item.id,
+      otp
+    });
+
+    alert("Item delivered successfully");
+
+    setOtp("");
+    setAskOtp(false);
     fetchOrder();
 
   } catch (err) {
     console.log(err);
-    alert("Failed to update");
+    alert(err.response?.data?.message || "Delivery failed");
   }
 };
-
 
 if(!order) return <p>Loading...</p>;
 
@@ -265,12 +284,28 @@ className="border p-4 rounded-lg flex justify-between"
 {/* ✅ DELIVER BUTTON */}
 
 {!hasPending && hasConfirmed && !allDelivered && (
-  <button
-    onClick={markDelivered}
-    className="bg-green-600 text-white px-6 py-2 rounded-xl"
-  >
-    Mark as Delivered
-  </button>
+  <div className="space-y-3">
+
+    {/* OTP INPUT (click ke baad hi dikhega) */}
+    {askOtp && (
+      <input
+        type="text"
+        placeholder="Enter OTP"
+        value={otp}
+        onChange={(e)=>setOtp(e.target.value)}
+        className="border p-2 rounded w-full"
+      />
+    )}
+
+    {/* SAME BUTTON */}
+    <button
+      onClick={handleDeliverClick}
+      className="bg-green-600 text-white px-6 py-2 rounded-xl"
+    >
+      {askOtp ? "Verify & Deliver" : "Mark as Delivered"}
+    </button>
+
+  </div>
 )}
 
 {/* ✅ CONFIRM BUTTON */}
