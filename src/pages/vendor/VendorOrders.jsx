@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
+import TrackingModal from "../../components/TrackingModal";
 import Footer from "../../components/Footer";
 export default function VendorOrders(){
 
 const [orders,setOrders] = useState([]);
 const [loading,setLoading] = useState(true);
 
-
+const [trackingItemId, setTrackingItemId] = useState(null);
 /* ================= FETCH ORDERS ================= */
 
 useEffect(()=>{
@@ -80,8 +81,15 @@ No orders received yet
   return (
 
 <div
-key={order.order_id}
-className="border p-6 rounded-2xl shadow-sm"
+  key={order.order_id}
+onClick={() => {
+  if (!order.item_id) {
+    console.log("❌ item_id missing", order);
+    return;
+  }
+  setTrackingItemId(order.item_id);
+}}
+  className="border p-6 rounded-2xl shadow-sm cursor-pointer hover:bg-gray-50"
 >
 
 
@@ -152,6 +160,7 @@ Vendor Earning: ₹{order.vendor_earning}
 
 <Link
 to={`/vendor/orders/${order.order_id}`}
+  onClick={(e) => e.stopPropagation()} 
 className="text-primary font-semibold hover:underline"
 >
 
@@ -164,7 +173,15 @@ View Details
 </div>
 );
     })}
+  
 <Footer/>
+  {/* ✅ SINGLE MODAL HERE */}
+      {trackingItemId && (
+        <TrackingModal
+          itemId={trackingItemId}
+          onClose={() => setTrackingItemId(null)}
+        />
+      )}
 </div>
 
 );

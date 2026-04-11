@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { getUserOrders } from "../../services/orderService";
-
+import TrackingModal from "../../components/TrackingModal";
 export default function Orders() {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-
+const [trackingItemId, setTrackingItemId] = useState(null);
   /* ================= FETCH ORDERS ================= */
 
   useEffect(() => {
@@ -155,9 +155,10 @@ export default function Orders() {
               {order.items?.map((item) => (
 
                 <div
-                  key={item.id}
-                  className="flex justify-between items-center border-t border-borderDefault pt-3"
-                >
+  key={item.id}
+  onClick={() => setTrackingItemId(item.id)}
+  className="flex justify-between items-center border-t border-borderDefault pt-3 cursor-pointer hover:bg-gray-50"
+>
 
                  <div>
 
@@ -223,9 +224,15 @@ export default function Orders() {
     })}
 
       </div>
+ {trackingItemId && (
+  <TrackingModal
+    itemId={trackingItemId}
+    onClose={() => setTrackingItemId(null)}
+  />
+)}
 
     </div>
-
+   
   );
 
 }
