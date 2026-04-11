@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import LiveTracking from "./pages/LiveTracking";
 import PublicLayout from "./layouts/PublicLayout";
 import VendorLayout from "./layouts/VendorLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -122,7 +122,7 @@ function App() {
 </Route>
 
         
-
+<Route path="/live/:itemId" element={<LiveTracking />} />
         {/* ================= FALLBACK ================= */}
         <Route path="*" element={<Navigate to="/" />} />
 
