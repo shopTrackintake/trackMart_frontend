@@ -8,8 +8,8 @@ export default function LiveTracking() {
 
   useEffect(() => {
 
-    const sendLocation = () => {
-      navigator.geolocation.getCurrentPosition((pos) => {
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
 
         api.patch("/track/update-location", {
           item_id: itemId,
@@ -17,14 +17,16 @@ export default function LiveTracking() {
           lng: pos.coords.longitude
         });
 
-      });
-    };
+      },
+      (err) => {
+        console.log("Location error:", err);
+      },
+      {
+        enableHighAccuracy: true
+      }
+    );
 
-    sendLocation(); // first time
-
-    const interval = setInterval(sendLocation, 5000);
-
-    return () => clearInterval(interval);
+    return () => navigator.geolocation.clearWatch(watchId);
 
   }, [itemId]);
 

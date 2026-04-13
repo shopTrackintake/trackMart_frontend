@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import MapPicker from "../../components/MapPicker";
 import {
   getAddresses,
   addAddress,
@@ -14,11 +15,11 @@ export default function Checkout(){
 const paymentRef = useRef(null);
 const formRef = useRef(null);
 const navigate = useNavigate();
-
+const [locationConfirmed, setLocationConfirmed] = useState(false);
 const [addresses,setAddresses] = useState([]);
 const [selected,setSelected] = useState(null);
 const [editingId,setEditingId] = useState(null);
-
+const [showMap, setShowMap] = useState(false);
 const [paymentMethod,setPaymentMethod] = useState("COD");
 const [placing,setPlacing] = useState(false);
 const [showOverview,setShowOverview] = useState(false);
@@ -263,32 +264,44 @@ const getLiveLocation = ()=>{
   alert("Geolocation not supported");
   return;
  }
+navigator.geolocation.getCurrentPosition(
+  async (position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
 
- navigator.geolocation.getCurrentPosition(async(position)=>{
-  const lat = position.coords.latitude;
-  const lon = position.coords.longitude;
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      );
 
-  const res = await fetch(
-   `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-  );
+      const data = await res.json();
+      const addr = data.address || {};
 
-  const data = await res.json();
-  const addr = data.address;
+      setForm(prev => ({
+  ...prev,
+  house_no: addr.house_number || prev.house_no,
+  street: addr.road || prev.street,
+  locality: addr.suburb || addr.village || prev.locality,
+  city: addr.city || addr.town || prev.city,
+  state: addr.state || prev.state,
+  pincode: addr.postcode || prev.pincode,
+  latitude: lat,
+  longitude: lon
+}));
 
-  setForm(prev=>({
-   ...prev,
-   house_no:addr.house_number || "",
-   street:addr.road || "",
-   locality:addr.suburb || "",
-   city:addr.city || "",
-   state:addr.state || "",
-   pincode:addr.postcode || "",
-   latitude:lat,
-   longitude:lon
-  }));
- });
-};
+      setLocationConfirmed(true);
+      setShowMap(true);
 
+    } catch (err) {
+      console.log(err);
+      alert("Failed to fetch address");
+    }
+  },
+  (error) => {
+    alert("Please enable location permission");
+  }
+);
+  };  
 return(
 
 <div className="space-y-10">
@@ -296,7 +309,7 @@ return(
 {/* BACK ARROW */}
 <button
  onClick={()=>navigate("/cart")}
- className="absolute top-16 left-6 p-10 rounded-full hover:bg-gray-100 transition z-50"
+  className="absolute top-16 left-6 p-10 rounded-full hover:bg-gray-100 transition z-50"
 >
  <ArrowLeft className="w-6 h-6 text-gray-700"/>
 </button>
@@ -364,7 +377,8 @@ onClick={(e)=>{
  });
 
  setEditingId(addr.id);
-
+ setShowMap(true);              // map open
+ setLocationConfirmed(false);
  formRef.current?.scrollIntoView({behavior:"smooth"});
 }}
 className="text-sm px-4 py-1 border rounded-lg hover:bg-gray-100"
@@ -428,23 +442,76 @@ onChange={e=>setForm({...form,pincode:e.target.value})}
 className="border p-2 w-full rounded-lg"/>
 
 <div className="flex gap-4">
-
 <button
-onClick={handleAdd}
-className="bg-primary text-white px-6 py-2 rounded-xl"
+  onClick={() => {
+    setShowMap(true);          // 🔥 ALWAYS OPEN
+    setLocationConfirmed(false);
+  }}
+ className="w-full h-11 border rounded-xl flex items-center justify-center"
 >
-{editingId ? "Update Address" : "Save Address"}
+  📍 Pick from Map
 </button>
-
 <button
-onClick={getLiveLocation}
-className="border px-6 py-2 rounded-xl"
+  onClick={() => {
+
+    // ✅ validation
+    if (
+      !form.full_name ||
+      !form.phone ||
+      !form.house_no ||
+      !form.street ||
+      !form.locality ||
+      !form.city ||
+      !form.state ||
+      !form.pincode
+    ) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    // 🔥 ALWAYS REQUIRE MAP CLICK (IMPORTANT)
+    if (!locationConfirmed) {
+      alert("Please select location on map first");
+
+      setShowMap(true);   // map open
+      return;
+    }
+
+    // ✅ FINAL UPDATE
+    handleAdd();
+
+  }}
+  className="w-full h-11 bg-primary text-white rounded-xl flex items-center justify-center"
 >
-Use Live Location
+  {editingId ? "Update Address" : "Save Address"}
+</button> 
+<button
+  onClick={getLiveLocation}
+ className="w-full h-11 border rounded-xl flex items-center justify-center"
+>
+  Use Live Location
 </button>
 
 </div>
+{showMap && (
+  <div className="mt-4 border p-4 rounded-xl">
 
+    <p className="text-sm text-gray-500 mb-2">
+      📍 Click on map to confirm location
+    </p>
+
+  <MapPicker 
+  setForm={setForm}
+  setLocationConfirmed={setLocationConfirmed}
+  setShowMap={setShowMap}   // 🔥 MUST
+  lat={form.latitude}
+  lng={form.longitude}
+/>
+
+     
+
+  </div>
+)}
 </div>
 
 {/* PAYMENT */}
