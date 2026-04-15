@@ -22,15 +22,13 @@ fetchData();
 
 },[]);
 
-const clearPayment = async(id)=>{
-
+const clearPayment = async(id, reference)=>{
 try{
-await api.post(`/admin/vendor-payout/${id}`);
+await api.post(`/admin/vendor-payout/${id}`, { reference });
 setVendors(prev=>prev.filter(v=>v.vendor_id!==id));
 }catch(err){
 console.log(err);
 }
-
 };
 
 return(
@@ -46,46 +44,61 @@ Vendor Weekly Payments
 No pending payouts
 </p>
 )}
+{vendors.map(v => {
 
-{vendors.map(v=>(
+  const net = Number(v.total_earning || 0) - Number(v.cod_due || 0);
 
-<div
-key={v.vendor_id}
-onClick={()=>navigate(`/admin/vendors/${v.vendor_id}`)}
-className="bg-bgSurface border border-borderDefault rounded-xl p-4 md:p-6 cursor-pointer hover:bg-bgSurfaceAlt flex flex-col md:flex-row md:justify-between md:items-center gap-4"
->
+  return (
 
-{/* LEFT SIDE */}
-<div className="space-y-1">
+    <div
+      key={v.vendor_id}
+      onClick={()=>navigate(`/admin/vendors/${v.vendor_id}`)}
+      className="bg-bgSurface border border-borderDefault rounded-xl p-4 md:p-6 cursor-pointer hover:bg-bgSurfaceAlt flex flex-col md:flex-row md:justify-between md:items-center gap-4"
+    >
 
-<h2 className="font-semibold text-base md:text-lg">
-{v.business_name}
-</h2>
+      {/* LEFT SIDE */}
+      <div className="space-y-1">
 
-<p className="text-green-600 font-semibold text-base md:text-lg">
-₹{Number(v.total_earning || 0)}
-</p>
+        <h2 className="font-semibold text-base md:text-lg">
+          {v.business_name}
+        </h2>
 
-</div>
+        <p className="text-green-600 font-semibold text-base md:text-lg">
+          ₹{Math.max(0, net)}
+        </p>
 
-{/* RIGHT SIDE BUTTON */}
-<div className="w-full md:w-auto">
+        {net <= 0 && (
+          <p className="text-red-500 text-sm">
+            Vendor owes ₹{Math.abs(net)}
+          </p>
+        )}
 
-<button
-onClick={(e)=>{
-e.stopPropagation();
-clearPayment(v.vendor_id);
-}}
-className="w-full md:w-[200px] h-10 flex items-center justify-center bg-primary text-white rounded-lg hover:bg-primaryHover"
->
-Clear Weekly Payment
-</button>
+      </div>
 
-</div>
+      {/* RIGHT SIDE BUTTON */}
+      <div className="w-full md:w-auto">
 
-</div>
+        <button
+          onClick={(e)=>{
+            e.stopPropagation();
 
-))}
+            const ref = prompt("Enter payment reference (UTR / Txn ID)");
+            if(!ref) return;
+
+            clearPayment(v.vendor_id, ref);
+          }}
+          className="w-full md:w-[200px] h-10 flex items-center justify-center bg-primary text-white rounded-lg"
+        >
+          Clear Weekly Payment
+        </button>
+
+      </div>
+
+    </div>
+
+  );
+
+})}
 
 </div>
 
