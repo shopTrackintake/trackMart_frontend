@@ -14,6 +14,7 @@ const [vendor,setVendor] = useState(null);
 useEffect(()=>{
 
 const fetchPayments = async()=>{
+  
 
 try{
 
@@ -31,6 +32,51 @@ fetchPayments();
 
 
 },[]);
+  const netPending = (data.pending || 0) - (data.dues || 0);
+  const handlePayDues = async () => {
+  try {
+
+    // 🔥 create order
+    const { data: orderRes } = await api.post("/payment/create-order", {
+      amount: Math.abs(netPending),
+      type: "vendor_due"
+    });
+
+    const order = orderRes.order;
+
+    const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID,  // ⚠️ replace
+      amount: order.amount,
+      currency: "INR",
+      order_id: order.id,
+      name: "TrackMart Vendor Dues",
+      description: "Clear your dues",
+
+      handler: async function (response) {
+
+        // 🔥 verify payment
+        await api.post("/payment/verify", {
+  razorpay_order_id: response.razorpay_order_id,
+  razorpay_payment_id: response.razorpay_payment_id,
+  razorpay_signature: response.razorpay_signature,
+  type: "vendor_due",
+  amount: Math.abs(netPending)   // 🔥 IMPORTANT
+});
+
+        alert("Dues cleared successfully");
+
+        // 🔥 refresh UI (simple way)
+        window.location.reload();
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 return(
 
@@ -41,35 +87,48 @@ return(
 <h1 className="text-3xl font-bold">
 My Earnings
 </h1>
-
+{/* 🔥 ADD THIS */}
+{netPending < 0 && (
+  <p className="text-red-500 font-medium">
+    ⚠ You have pending dues. Clear them to receive payouts.
+  </p>
+)}
 
 {/* SUMMARY */}
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
 <div className="bg-bgSurface border border-borderDefault rounded-xl p-6">
-
-<p className="text-textMuted">
-Received
-</p>
-
+<p className="text-textMuted">Received</p>
 <p className="text-2xl font-bold text-green-600">
 ₹{data.received}
 </p>
-
 </div>
 
-
 <div className="bg-bgSurface border border-borderDefault rounded-xl p-6">
-
-<p className="text-textMuted">
-Pending
-</p>
-
+<p className="text-textMuted">Pending</p>
 <p className="text-2xl font-bold text-yellow-600">
-₹{data.pending}
+₹{Math.max(0, netPending)}
+</p>
+</div>
+
+{/* 🔥 ADD THIS HERE */}
+<div className="bg-bgSurface border border-borderDefault rounded-xl p-6">
+<p className="text-textMuted">Dues</p>
+
+<p className="text-2xl font-bold text-red-600">
+₹{netPending < 0 ? Math.abs(netPending) : 0}
 </p>
 
+{/* 🔥 PAY DUES BUTTON */}
+{netPending < 0 && (
+  <button
+    onClick={handlePayDues}
+    className="mt-3 w-full bg-red-500 text-white py-2 rounded-lg"
+  >
+    Pay Dues
+  </button>
+)}
 </div>
 
 </div>
@@ -161,7 +220,12 @@ p.payout_status==="paid"
 : "Pending"}
 
 </p>
-
+  {/* 🔥 ADD THIS HERE */}
+{p.payout_status==="paid" && p.payout_reference && (
+  <p className="text-xs text-textMuted">
+    Ref: {p.payout_reference}
+  </p>
+)}
 </div>
 
 </div>
