@@ -535,7 +535,7 @@ Online Payment
 
 <button
 onClick={placeOrder}
-disabled={!selected}
+
 className="bg-primary text-white px-8 py-3 rounded-xl w-full"
 >
 Place Order
