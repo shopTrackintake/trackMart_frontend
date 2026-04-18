@@ -484,10 +484,10 @@ useEffect(() => {
   </div>
 
   {/* 🔥 CENTER SEARCH + FILTERS */}
-  <div className="flex flex-col md:flex-row flex-1 min-w-0 items-stretch md:items-center gap-3">
+  <div className="flex flex-col md:flex-row flex-1 min-w-0 items-stretch md:items-center gap-3 md:-ml-6">
 
     {/* SEARCH */}
-    <div className="flex w-full md:w-auto border border-default rounded-xl overflow-hidden min-w-[200px]">
+    <div className="flex w-full md:w-auto border border-default rounded-xl overflow-hidden min-w-[230px]">
       <input
         type="text"
         placeholder="Search products..."
@@ -531,10 +531,10 @@ useEffect(() => {
       </select>
 
       <select
-        value={sort}
-        onChange={(e)=>setSort(e.target.value)}
-        className="border border-default rounded-xl px-3 py-2 w-full md:w-auto"
-      >
+  value={sort}
+  onChange={(e)=>setSort(e.target.value)}
+  className="border border-default rounded-xl px-3 py-2 w-full md:w-auto md:max-w-[120px]"
+>
         <option value="featured">Featured</option>
         <option value="price_low">Price Low → High</option>
         <option value="price_high">Price High → Low</option>
