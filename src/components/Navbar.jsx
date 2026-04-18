@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
@@ -6,7 +6,7 @@ import { getWishlist } from "../services/wishlistService";
 import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
-
+const location = useLocation();
   const { role, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -47,7 +47,7 @@ export default function Navbar() {
 
         {/* LOGO */}
         <Link to="/" className="text-xl md:text-2xl font-bold">
-          <span className="text-primary">Intake</span>
+          <span className="text-primary">Track</span>
           <span className="text-strong">Mart</span>
         </Link>
 
@@ -56,10 +56,28 @@ export default function Navbar() {
 
           {!role && (
             <>
-              <Link to="/">Shop</Link>
+              <Link
+  to="/"
+  className={`${
+    location.pathname === "/"
+      ? "text-primary font-semibold"
+      : ""
+  }`}
+>
+  Shop
+</Link>
               <Link to="/login" className="btn-primary">Login</Link>
               <Link to="/register" className="btn-outline">Register</Link>
-              <Link to="/apply-vendor">Become Seller</Link>
+              <Link
+  to="/apply-vendor"
+  className={`${
+    location.pathname === "/apply-vendor"
+      ? "text-primary font-semibold"
+      : ""
+  }`}
+>
+  Become Seller
+</Link>
             </>
           )}
 

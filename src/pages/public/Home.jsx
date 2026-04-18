@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState,useRef, useContext } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getProducts } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
@@ -14,7 +14,7 @@ export default function Home() {
   const [loading,setLoading] = useState(false);
   const [products,setProducts] = useState([]);
   const [categories,setCategories] = useState([]);
-
+const isFirstLoad = useRef(true);
   const [cartItems,setCartItems] = useState([]);
   
   const [wishlistIds,setWishlistIds] = useState([]);
@@ -37,45 +37,45 @@ const adsData = [
   {
     title: "20% OFF",
     desc: "On Beverages",
-    code: "DRINK20",
-    image: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=200",
+    image: "https://images.unsplash.com/photo-1544145945-f90425340c7e",
     bg: "from-orange-200 to-orange-100"
   },
   {
     title: "Buy 1 Get 1",
     desc: "Free snacks",
-    code: "BOGO",
-    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200",
+    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
     bg: "from-green-200 to-green-100"
   },
   {
     title: "Flat ₹100 OFF",
     desc: "Above ₹499",
-    code: "SAVE100",
-    image: "https://images.unsplash.com/photo-1514361892635-cebbd25e6c04?w=200",
+    image: "https://images.unsplash.com/photo-1514361892635-cebbd25e6c04",
     bg: "from-purple-200 to-purple-100"
   },
   {
     title: "Flash Deal",
     desc: "Ends tonight",
-    code: "FLASH",
-    image: "https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=200",
+    image: "https://images.unsplash.com/photo-1519996529931-28324d5a630e",
     bg: "from-yellow-200 to-yellow-100"
   },
   {
     title: "Organic Sale",
     desc: "Healthy picks",
-    code: "HEALTH10",
-    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200",
+    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999",
     bg: "from-green-100 to-white"
   }
 ];
 const [adIndexes, setAdIndexes] = useState([0, 1, 2, 3]);
 useEffect(() => {
   const interval = setInterval(() => {
-    setAdIndexes(prev =>
-      prev.map((val, i) => (val + 1 + i) % adsData.length)
-    );
+    setAdIndexes(() => {
+      // shuffle indices
+      let indexes = [...Array(adsData.length).keys()]
+        .sort(() => 0.5 - Math.random());
+
+      // pick first 4 unique ads
+      return indexes.slice(0, 4);
+    });
   }, 2500);
 
   return () => clearInterval(interval);
@@ -131,6 +131,11 @@ const dealsData = [
 ];
 const [dealIndex, setDealIndex] = useState(0);
 useEffect(() => {
+  if (isFirstLoad.current) {
+    isFirstLoad.current = false;
+    return;
+  }
+
   const section = document.getElementById("products-section");
   if (section) {
     section.scrollIntoView({ behavior: "smooth" });
@@ -454,13 +459,19 @@ useEffect(() => {
       return (
         <div
           key={i}
-          className={`relative h-[60px] rounded-xl overflow-hidden shadow-md bg-gradient-to-r ${ad.bg} flex items-center px-3 py-2`}
-        >
-          <img src={ad.image} className="w-10 h-10 rounded-lg object-cover" />
-          <div className="ml-3 flex-1 flex flex-col justify-center">
-            <p className="text-xs font-semibold">{ad.title}</p>
-            <p className="text-[10px] text-gray-700">{ad.desc}</p>
-          </div>
+          className={`relative h-[80px] rounded-xl overflow-hidden shadow-md bg-gradient-to-r ${ad.bg} flex items-center px-3 py-2`}
+        ><img
+  src={ad.image}
+  onError={(e)=>{
+    e.target.onerror = null;
+    e.target.src = "https://res.cloudinary.com/dsn1q7hyk/image/upload/q_auto/f_auto/v1774419499/Clinton-Foodmart_ktkl3m.jpg";
+  }}
+  className="w-12 h-12 rounded-lg object-cover shrink-0"
+/>
+          <div className="ml-3 flex-1 flex flex-col justify-center overflow-hidden">
+  <p className="text-xs font-semibold truncate">{ad.title}</p>
+  <p className="text-[10px] text-gray-700 truncate">{ad.desc}</p>
+</div>
           <button
             onClick={() => navigate("/products")}
             className="bg-white text-black text-[9px] px-2 py-[2px] rounded shrink-0"
@@ -473,10 +484,10 @@ useEffect(() => {
   </div>
 
   {/* 🔥 CENTER SEARCH + FILTERS */}
-  <div className="flex flex-col md:flex-row flex-1 min-w-0 items-stretch md:items-center gap-3">
+  <div className="flex flex-col md:flex-row flex-1 min-w-0 items-stretch md:items-center gap-3 md:-ml-6">
 
     {/* SEARCH */}
-    <div className="flex w-full md:w-auto border border-default rounded-xl overflow-hidden min-w-[200px]">
+    <div className="flex w-full md:w-auto border border-default rounded-xl overflow-hidden min-w-[230px]">
       <input
         type="text"
         placeholder="Search products..."
@@ -520,10 +531,10 @@ useEffect(() => {
       </select>
 
       <select
-        value={sort}
-        onChange={(e)=>setSort(e.target.value)}
-        className="border border-default rounded-xl px-3 py-2 w-full md:w-auto"
-      >
+  value={sort}
+  onChange={(e)=>setSort(e.target.value)}
+  className="border border-default rounded-xl px-3 py-2 w-full md:w-auto md:max-w-[120px]"
+>
         <option value="featured">Featured</option>
         <option value="price_low">Price Low → High</option>
         <option value="price_high">Price High → Low</option>
@@ -540,13 +551,20 @@ useEffect(() => {
       return (
         <div
           key={i}
-          className={`relative h-[60px] rounded-xl overflow-hidden shadow-md bg-gradient-to-r ${ad.bg} flex items-center px-3 py-2`}
+          className={`relative h-[80px] rounded-xl overflow-hidden shadow-md bg-gradient-to-r ${ad.bg} flex items-center px-3 py-2`}
         >
-          <img src={ad.image} className="w-10 h-10 rounded-lg object-cover" />
-          <div className="ml-3 flex-1 flex flex-col justify-center">
-            <p className="text-xs font-semibold">{ad.title}</p>
-            <p className="text-[10px] text-gray-700">{ad.desc}</p>
-          </div>
+         <img
+  src={ad.image}
+  onError={(e)=>{
+    e.target.onerror = null;
+    e.target.src = "https://res.cloudinary.com/dsn1q7hyk/image/upload/q_auto/f_auto/v1774419499/Clinton-Foodmart_ktkl3m.jpg";
+  }}
+  className="w-12 h-12 rounded-lg object-cover shrink-0"
+/>
+         <div className="ml-3 flex-1 flex flex-col justify-center overflow-hidden">
+  <p className="text-xs font-semibold truncate">{ad.title}</p>
+  <p className="text-[10px] text-gray-700 truncate">{ad.desc}</p>
+</div>
           <button
             onClick={() => navigate("/products")}
             className="bg-white text-black text-[9px] px-2 py-[2px] rounded shrink-0"
