@@ -5,7 +5,7 @@ import { createProduct } from "../../services/productService";
 import Footer from "../../components/Footer";
 
 export default function AddProduct() {
-
+const [loading, setLoading] = useState(false);
   const { token } = useContext(AuthContext);
 
   const [categories, setCategories] = useState([]);
@@ -63,53 +63,59 @@ export default function AddProduct() {
       [field]: values.join(",")
     });
   };
+const handleSubmit = async () => {
+  if (loading) return; // prevent multiple clicks
 
-  const handleSubmit = async () => {
-    try {
-      if (!form.title || !form.price || !form.stock || !form.size) {
-        alert("Please fill required fields");
-        return;
-      }
-
-      const formData = new FormData();
-
-      Object.keys(form).forEach(key => {
-        if (form[key] !== null && form[key] !== "") {
-          formData.append(key, form[key]);
-        }
-      });
-
-      formData.append("vendor_claimed_health", calculateHealth());
-
-      await createProduct(formData, token);
-
-      alert("Product added successfully");
-
-      setForm({
-        title: "",
-        description: "",
-        category_id: "",
-        care_type: "",
-        concern_type: "",
-        ingredients: "",
-        price: "",
-        stock: "",
-        size: "",
-        calories: "",
-        sugar: "",
-        fat: "",
-        protein: "",
-        how_to_use: "",
-        making_process: "",
-        product_image: null,
-        ingredients_image: null
-      });
-
-    } catch (err) {
-      console.log(err);
-      alert(err.response?.data?.message || "Error adding product");
+  try {
+    if (!form.title || !form.price || !form.stock || !form.size) {
+      alert("Please fill required fields");
+      return;
     }
-  };
+
+    setLoading(true); // start loading
+
+    const formData = new FormData();
+
+    Object.keys(form).forEach(key => {
+      if (form[key] !== null && form[key] !== "") {
+        formData.append(key, form[key]);
+      }
+    });
+
+    formData.append("vendor_claimed_health", calculateHealth());
+
+    await createProduct(formData, token);
+
+    alert("Product added successfully");
+
+    // reset form
+    setForm({
+      title: "",
+      description: "",
+      category_id: "",
+      care_type: "",
+      concern_type: "",
+      ingredients: "",
+      price: "",
+      stock: "",
+      size: "",
+      calories: "",
+      sugar: "",
+      fat: "",
+      protein: "",
+      how_to_use: "",
+      making_process: "",
+      product_image: null,
+      ingredients_image: null
+    });
+
+  } catch (err) {
+    console.log(err);
+    alert(err.response?.data?.message || "Error adding product");
+  } finally {
+    setLoading(false); // stop loading
+  }
+};
 
   return (
 
@@ -295,12 +301,14 @@ export default function AddProduct() {
       </div>
 
       <div className="flex justify-end">
-        <button
-          onClick={handleSubmit}
-          className="bg-green-600 text-white w-full sm:w-auto px-6 md:px-10 py-3 rounded-xl"
-        >
-          Add Product
-        </button>
+       <button
+  onClick={handleSubmit}
+  disabled={loading}
+  className={`bg-green-600 text-white w-full sm:w-auto px-6 md:px-10 py-3 rounded-xl 
+  ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  {loading ? "Adding..." : "Add Product"}
+</button>
       </div>
 
       <Footer />
