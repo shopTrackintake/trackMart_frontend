@@ -681,11 +681,16 @@ useEffect(() => {
                   >
                     {product.image_url && (
                       <div className="relative h-24 sm:h-28 md:h-56 bg-gray-50 flex items-center justify-center rounded-xl mb-4">
+                        {Number(product.discount_percent) > 0 && (
+                          <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
+                            {product.discount_percent}% OFF
+                          </span>
+                        )}
                         <img src={product.image_url} alt={product.title} className="max-h-full max-w-full object-contain" />
                         {role==="customer" && (
                           <button
                             onClick={(e)=>{ e.stopPropagation(); toggleWishlistItem(product.id) }}
-                            className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md"
+                            className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md z-10"
                           >
                             <Heart className={`w-5 h-5 ${wishlistIds.includes(String(product.id)) ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
                           </button>
@@ -697,7 +702,18 @@ useEffect(() => {
                     <p className="text-muted text-xs sm:text-sm mt-1 line-clamp-2">{product.description}</p>
 
                     <div className="mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                      <span className="text-primary font-bold text-lg">₹{product.price}</span>
+                      <div>
+                        <span className="text-primary font-bold text-base sm:text-lg">
+                          ₹{Number(product.discount_percent) > 0
+                            ? Math.round(Number(product.price) * (1 - Number(product.discount_percent) / 100))
+                            : product.price}
+                        </span>
+                        {Number(product.discount_percent) > 0 && (
+                          <span className="text-xs text-gray-400 line-through ml-1.5">
+                            ₹{product.price}
+                          </span>
+                        )}
+                      </div>
                       {product.health_rating && (
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           product.health_rating==="Healthy" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"

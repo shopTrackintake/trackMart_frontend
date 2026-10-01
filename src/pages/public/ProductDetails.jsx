@@ -96,16 +96,36 @@ const ingredientImages = product.ingredients_image_url
   ? product.ingredients.split("\n")
   : [];
   return (
-    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-10">
+    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn">
 
-      {/* BACK ARROW */}
-      <button
-        onClick={() => navigate(-1)}
-        className="absolute top-4 left-4 p-2 rounded-full hover:bg-gray-100 transition"
-      >
-        <ArrowLeft className="w-6 h-6 text-gray-700" />
-      </button>
+      {/* NAVIGATION BAR & BREADCRUMBS */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
 
+          <nav className="text-xs sm:text-sm text-slate-500 truncate max-w-[240px] sm:max-w-md">
+            <span>{role === "vendor" ? "Vendor Hub" : "Store"}</span>
+            <span className="mx-1.5">/</span>
+            <span className="font-semibold text-slate-900 truncate">{product.title}</span>
+          </nav>
+        </div>
+
+        {/* VENDOR QUICK EDIT ACTION */}
+        {role === "vendor" && (
+          <button
+            onClick={() => navigate(`/vendor/edit-product/${product.id}`)}
+            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition shadow-xs shrink-0 self-start sm:self-auto"
+          >
+            ✏️ Edit Product
+          </button>
+        )}
+      </div>
 
       {/* TOP SECTION */}
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
@@ -133,8 +153,22 @@ const ingredientImages = product.ingredients_image_url
           </h1>
 
           {/* PRICE */}
-          <div className="text-2xl sm:text-3xl font-semibold text-green-600">
-            ₹{product.price}
+          <div className="flex items-center gap-3">
+            <span className="text-2xl sm:text-3xl font-semibold text-green-600">
+              ₹{Number(product.discount_percent) > 0
+                ? Math.round(Number(product.price) * (1 - Number(product.discount_percent) / 100))
+                : product.price}
+            </span>
+            {Number(product.discount_percent) > 0 && (
+              <>
+                <span className="text-lg text-gray-400 line-through">
+                  ₹{product.price}
+                </span>
+                <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                  {product.discount_percent}% OFF
+                </span>
+              </>
+            )}
           </div>
 
           {/* SIZE */}

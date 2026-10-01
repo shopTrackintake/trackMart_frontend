@@ -33,3 +33,13 @@ export const createProduct = (formData, token) => {
 export const getProductById = (id) => {
   return api.get(`/products/${id}`);
 };
+
+/* UPDATE PRODUCT */
+
+export const updateProduct = (id, formData, token) => {
+  return api.put(`/products/${id}`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};

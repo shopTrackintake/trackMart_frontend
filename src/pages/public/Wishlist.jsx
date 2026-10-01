@@ -93,18 +93,34 @@ key={item.wishlist_id}
 className="border rounded-xl p-4 md:p-6 shadow flex flex-col"
 >
 
-<img
-src={item.image_url}
-className="h-28 md:h-40 object-contain mx-auto"
-/>
+<div className="relative">
+  {Number(item.discount_percent) > 0 && (
+    <span className="absolute top-0 left-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+      {item.discount_percent}% OFF
+    </span>
+  )}
+  <img
+  src={item.image_url}
+  className="h-28 md:h-40 object-contain mx-auto"
+  />
+</div>
 
 <h3 className="font-semibold mt-3 md:mt-4 text-sm md:text-base line-clamp-1">
 {item.title}
 </h3>
 
-<p className="text-primary font-bold text-sm md:text-base">
-₹{item.price}
-</p>
+<div className="flex items-center gap-2">
+  <span className="text-primary font-bold text-sm md:text-base">
+    ₹{Number(item.discount_percent) > 0
+      ? Math.round(Number(item.price) * (1 - Number(item.discount_percent) / 100))
+      : item.price}
+  </span>
+  {Number(item.discount_percent) > 0 && (
+    <span className="text-xs text-gray-400 line-through">
+      ₹{item.price}
+    </span>
+  )}
+</div>
 
 <div className="flex flex-col sm:flex-row gap-2 mt-3 md:mt-4">
 

@@ -134,6 +134,12 @@ export default function Sidebar({ role }) {
                 `${baseLink} ${isActive ? activeLink : ""}`}>
               Orders
             </NavLink>
+
+            <NavLink to="/vendor/payments" onClick={()=>setIsOpen(false)}
+              className={({ isActive }) =>
+                `${baseLink} ${isActive ? activeLink : ""}`}>
+              Earnings & Payments
+            </NavLink>
           </div>
         )}
 

@@ -51,7 +51,7 @@ export default function Login() {
         </h2>
 
         <p className="text-textMuted text-center mt-2 mb-8">
-          Login to continue to NutriMarket
+          Login to continue to TrackMart
         </p>
 
         {/* Email */}

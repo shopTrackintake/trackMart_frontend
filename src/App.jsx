@@ -89,17 +89,16 @@ function App() {
 >
   <Route index element={<VendorDashboard />} />
   <Route path="add-product" element={<AddProduct />} />
+  <Route path="edit-product/:id" element={<AddProduct isEdit={true} />} />
 
   {/* NEW */}
+  <Route path="products" element={<VendorProducts />} />
   <Route path="payments" element={<VendorPayments />} />
   <Route path="orders" element={<VendorOrders />} />
   <Route path="earnings" element={<VendorEarnings />} />
   <Route path="orders/:id" element={<VendorOrderDetails />} />
+  <Route path="profile" element={<Profile />} />
 </Route>
-<Route
- path="/vendor/products"
- element={<VendorProducts/>}
-/>
         {/* ================= ADMIN ================= */}
         <Route
   path="admin"

@@ -45,39 +45,31 @@ No pending payouts
 </p>
 )}
 {vendors.map(v => {
-
-  const net = Number(v.total_earning || 0) - Number(v.cod_due || 0);
+  const amount = Number(v.total_earning || 0);
 
   return (
-
     <div
       key={v.vendor_id}
       onClick={()=>navigate(`/admin/vendors/${v.vendor_id}`)}
       className="bg-bgSurface border border-borderDefault rounded-xl p-4 md:p-6 cursor-pointer hover:bg-bgSurfaceAlt flex flex-col md:flex-row md:justify-between md:items-center gap-4"
     >
-
       {/* LEFT SIDE */}
       <div className="space-y-1">
-
         <h2 className="font-semibold text-base md:text-lg">
           {v.business_name}
         </h2>
 
         <p className="text-green-600 font-semibold text-base md:text-lg">
-          ₹{Math.max(0, net)}
+          ₹{amount.toLocaleString()}
         </p>
 
-        {net <= 0 && (
-          <p className="text-red-500 text-sm">
-            Vendor owes ₹{Math.abs(net)}
-          </p>
-        )}
-
+        <p className="text-xs text-textMuted">
+          Pending weekly payout
+        </p>
       </div>
 
       {/* RIGHT SIDE BUTTON */}
       <div className="w-full md:w-auto">
-
         <button
           onClick={(e)=>{
             e.stopPropagation();
@@ -87,17 +79,13 @@ No pending payouts
 
             clearPayment(v.vendor_id, ref);
           }}
-          className="w-full md:w-[200px] h-10 flex items-center justify-center bg-primary text-white rounded-lg"
+          className="w-full md:w-[200px] h-10 flex items-center justify-center bg-primary text-white rounded-lg font-semibold"
         >
           Clear Weekly Payment
         </button>
-
       </div>
-
     </div>
-
   );
-
 })}
 
 </div>
