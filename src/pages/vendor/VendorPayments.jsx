@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import socket from "../../services/socket";
 import { 
   IndianRupee, Wallet, CheckCircle2, Clock, 
   Building2, Phone, MapPin, Hash, ArrowUpRight
@@ -39,6 +40,18 @@ export default function VendorPayments() {
     };
 
     fetchPayments();
+
+    const handleUpdate = () => {
+      fetchPayments();
+    };
+
+    socket.on("order_updated", handleUpdate);
+    socket.on("new_notification", handleUpdate);
+
+    return () => {
+      socket.off("order_updated", handleUpdate);
+      socket.off("new_notification", handleUpdate);
+    };
   }, []);
 
   return (

@@ -1,11 +1,17 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
-import { Bell, Trash2, Clock } from "lucide-react";
+import { Bell, Trash2, Clock, ExternalLink } from "lucide-react";
+import { AuthContext } from "../context/AuthContext";
+import socket from "../services/socket";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const bellRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { role } = useContext(AuthContext);
 
   /* ================= CLOSE ON CLICK OUTSIDE ================= */
   useEffect(() => {
@@ -21,30 +27,79 @@ export default function NotificationBell() {
     };
   }, []);
 
-  /* ================= FETCH NOTIFICATIONS ================= */
+  /* ================= FETCH NOTIFICATIONS & LISTEN TO WEBSOCKET ================= */
   useEffect(() => {
     fetchNotifications();
-  }, []);
+
+    const handleNewNotification = (newNotif) => {
+      console.log("⚡ Real-time notification received via Socket.io:", newNotif);
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === newNotif.id)) return prev;
+        return [newNotif, ...prev];
+      });
+    };
+
+    socket.on("new_notification", handleNewNotification);
+
+    return () => {
+      socket.off("new_notification", handleNewNotification);
+    };
+  }, [location.pathname]);
 
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications");
       setNotifications(res.data);
     } catch (err) {
-      console.log(err);
+      console.log("Error fetching notifications:", err);
     }
   };
 
-  /* ================= MARK ALL AS READ (WITH FALLBACK) ================= */
+  /* ================= HANDLE NOTIFICATION CLICK (ORDER REDIRECT) ================= */
+  const handleNotificationClick = async (n) => {
+    // 1. Optimistically mark notification as read in UI
+    if (!n.is_read) {
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item))
+      );
+      try {
+        await api.put(`/notifications/${n.id}/read`);
+      } catch (err) {
+        console.log("Error marking notification read:", err);
+      }
+    }
+
+    // 2. Close notification dropdown
+    setOpen(false);
+
+    // 3. Redirect to the related order or link
+    if (n.link) {
+      navigate(n.link);
+    } else if (n.order_id) {
+      if (role === "vendor") {
+        navigate(`/vendor/orders/${n.order_id}`);
+      } else if (role === "admin") {
+        navigate(`/admin/orders?orderId=${n.order_id}`);
+      } else {
+        navigate(`/customer/orders?orderId=${n.order_id}`);
+      }
+    } else {
+      // Role-based default fallback
+      if (role === "vendor") {
+        navigate("/vendor/orders");
+      } else if (role === "customer") {
+        navigate("/customer/orders");
+      }
+    }
+  };
+
+  /* ================= MARK ALL AS READ ================= */
   const markAllAsRead = async (currentNotifications) => {
-    // 1. Synchronously reset badge in UI state
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
 
     try {
-      // 2. Try bulk update endpoint
       await api.put("/notifications/read-all");
     } catch (err) {
-      // 3. Fallback: If server hasn't reloaded bulk route, update each unread item individually
       const unreadItems = (currentNotifications || notifications).filter((n) => !n.is_read);
       if (unreadItems.length > 0) {
         await Promise.all(
@@ -63,7 +118,7 @@ export default function NotificationBell() {
     try {
       await api.delete("/notifications/clear-all");
     } catch (err) {
-      console.log(err);
+      console.log("Error clearing notifications:", err);
     }
   };
 
@@ -72,7 +127,6 @@ export default function NotificationBell() {
     const nextOpen = !open;
     setOpen(nextOpen);
 
-    // Auto mark all as read on opening
     const unread = notifications.filter((n) => !n.is_read);
     if (nextOpen && unread.length > 0) {
       markAllAsRead(notifications);
@@ -93,7 +147,7 @@ export default function NotificationBell() {
         <Bell className="w-5 h-5" />
 
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -140,14 +194,23 @@ export default function NotificationBell() {
                 notifications.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-3.5 sm:p-4 transition flex gap-3 ${
-                      !n.is_read ? "bg-blue-50/60" : "hover:bg-slate-50"
+                    onClick={() => handleNotificationClick(n)}
+                    className={`p-3.5 sm:p-4 transition flex gap-3 cursor-pointer group ${
+                      !n.is_read ? "bg-blue-50/60 hover:bg-blue-50" : "hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-slate-900">
-                        {n.title}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-slate-900 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                          {n.title}
+                          {(n.order_id || n.link) && (
+                            <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </p>
+                        {!n.is_read && (
+                          <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                        )}
+                      </div>
                       <p className="text-xs text-slate-600 leading-relaxed">
                         {n.message}
                       </p>
@@ -156,6 +219,11 @@ export default function NotificationBell() {
                           <Clock className="w-3 h-3" />
                           {new Date(n.created_at).toLocaleDateString()} {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
+                        {(n.order_id || n.link) && (
+                          <span className="text-[11px] font-semibold text-primary group-hover:underline">
+                            View Order →
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

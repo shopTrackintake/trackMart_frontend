@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LiveTracking from "./pages/LiveTracking";
 import PublicLayout from "./layouts/PublicLayout";
 import VendorLayout from "./layouts/VendorLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -42,6 +41,7 @@ import RefundPolicy from "./pages/policies/RefundPolicy";
 import ShippingPolicy from "./pages/policies/ShippingPolicy";
 import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
+
 function App() {
   return (
     <BrowserRouter>
@@ -49,22 +49,23 @@ function App() {
 
         {/* ================= PUBLIC ================= */}
         <Route element={<PublicLayout />}>
-  <Route index element={<Home />} />
-  <Route path="/profile" element={<Profile />} />
-  <Route path="login" element={<Login />} />
- <Route path="/customer/wishlist" element={<Wishlist />} />
-  <Route path="register" element={<RegisterCustomer />} />
-  <Route path="apply-vendor" element={<ApplyVendor />} />
-  <Route path="cart" element={<Cart />} />
-  <Route path="checkout" element={<Checkout />} />
-  <Route path="product/:id" element={<ProductDetails />} />
-  <Route path="privacy" element={<PrivacyPolicy />} />
-  <Route path="terms" element={<TermsOfService />} />
-  <Route path="refund" element={<RefundPolicy />} />
-  <Route path="shipping" element={<ShippingPolicy />} />
-  <Route path="contact" element={<Contact />} />
-</Route>
-{/* ================= CUSTOMER ================= */}
+          <Route index element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="login" element={<Login />} />
+          <Route path="/customer/wishlist" element={<Wishlist />} />
+          <Route path="register" element={<RegisterCustomer />} />
+          <Route path="apply-vendor" element={<ApplyVendor />} />
+          <Route path="cart" element={<Cart />} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="product/:id" element={<ProductDetails />} />
+          <Route path="privacy" element={<PrivacyPolicy />} />
+          <Route path="terms" element={<TermsOfService />} />
+          <Route path="refund" element={<RefundPolicy />} />
+          <Route path="shipping" element={<ShippingPolicy />} />
+          <Route path="contact" element={<Contact />} />
+        </Route>
+
+        {/* ================= CUSTOMER ================= */}
         <Route
           element={
             <ProtectedRoute allowedRoles={["customer"]}>
@@ -78,50 +79,47 @@ function App() {
           <Route path="/customer/cart" element={<Cart />} />
           <Route path="/customer/checkout" element={<Checkout />} />
         </Route>
+
         {/* ================= VENDOR ================= */}
         <Route
-  path="vendor"
-  element={
-    <ProtectedRoute allowedRoles={["vendor"]}>
-      <VendorLayout />
-    </ProtectedRoute>
-  }
->
-  <Route index element={<VendorDashboard />} />
-  <Route path="add-product" element={<AddProduct />} />
-  <Route path="edit-product/:id" element={<AddProduct isEdit={true} />} />
+          path="vendor"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<VendorDashboard />} />
+          <Route path="add-product" element={<AddProduct />} />
+          <Route path="edit-product/:id" element={<AddProduct isEdit={true} />} />
+          <Route path="products" element={<VendorProducts />} />
+          <Route path="payments" element={<VendorPayments />} />
+          <Route path="orders" element={<VendorOrders />} />
+          <Route path="earnings" element={<VendorEarnings />} />
+          <Route path="orders/:id" element={<VendorOrderDetails />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
 
-  {/* NEW */}
-  <Route path="products" element={<VendorProducts />} />
-  <Route path="payments" element={<VendorPayments />} />
-  <Route path="orders" element={<VendorOrders />} />
-  <Route path="earnings" element={<VendorEarnings />} />
-  <Route path="orders/:id" element={<VendorOrderDetails />} />
-  <Route path="profile" element={<Profile />} />
-</Route>
         {/* ================= ADMIN ================= */}
         <Route
-  path="admin"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <AdminLayout />
-    </ProtectedRoute>
-  }
->
-  <Route index element={<AdminDashboard />} />
-  <Route path="/admin/support" element={<AdminSupport />} />
-  <Route path="vendors/:id" element={<AdminVendorDetails/>}/>
-<Route path="vendor-payments" element={<AdminVendorPayments />} />
-  <Route path="products" element={<AdminProducts />} />
-  <Route path="products/:id" element={<AdminProductDetails />} />
-<Route path="orders" element={<AdminOrders/>}/>
-  <Route path="vendors" element={<Vendors />} />
+          path="admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="/admin/support" element={<AdminSupport />} />
+          <Route path="vendors/:id" element={<AdminVendorDetails/>}/>
+          <Route path="vendor-payments" element={<AdminVendorPayments />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="products/:id" element={<AdminProductDetails />} />
+          <Route path="orders" element={<AdminOrders/>}/>
+          <Route path="vendors" element={<Vendors />} />
+          <Route path="approve-vendors" element={<ApproveVendors />} />
+        </Route>
 
-  <Route path="approve-vendors" element={<ApproveVendors />} />
-</Route>
-
-        
-<Route path="/live/:itemId" element={<LiveTracking />} />
         {/* ================= FALLBACK ================= */}
         <Route path="*" element={<Navigate to="/" />} />
 

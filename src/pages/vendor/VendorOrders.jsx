@@ -4,10 +4,11 @@ import api from "../../services/api";
 import TrackingModal from "../../components/TrackingModal";
 import { 
   ShoppingBag, Search, Clock, CheckCircle2, 
-  AlertCircle, ChevronRight, MapPin, Calendar, 
-  Package, RefreshCw, ChevronLeft, ChevronsLeft, ChevronsRight,
-  TrendingUp, ArrowRight
+  AlertCircle, ChevronRight, Calendar, Truck,
+  Package, RefreshCw, ChevronLeft, TrendingUp, ArrowRight
 } from "lucide-react";
+
+import socket from "../../services/socket";
 
 export default function VendorOrders() {
   const [orders, setOrders] = useState([]);
@@ -34,39 +35,47 @@ export default function VendorOrders() {
 
   useEffect(() => {
     fetchOrders();
+
+    const handleOrderUpdated = () => {
+      console.log("⚡ [VendorOrders] Socket order_updated event received - auto refreshing");
+      fetchOrders();
+    };
+
+    socket.on("order_updated", handleOrderUpdated);
+    return () => {
+      socket.off("order_updated", handleOrderUpdated);
+    };
   }, []);
 
-  // Reset to page 1 on filter or search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, statusFilter]);
 
   const getStatusBadge = (status) => {
     const s = String(status || "").toLowerCase();
-    switch (s) {
-      case "delivered":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Delivered
-          </span>
-        );
-      case "confirmed":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
-            <Clock className="w-3.5 h-3.5 text-blue-600" /> In Progress
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
-            <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Pending Action
-          </span>
-        );
+    if (s === "delivered") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Delivered
+        </span>
+      );
     }
+    if (s === "in_transit" || s === "confirmed" || s === "shipped") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+          <Truck className="w-3.5 h-3.5 text-blue-600" /> In Transit
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+        <Package className="w-3.5 h-3.5 text-amber-600" /> Pending Acceptance
+      </span>
+    );
   };
 
-  const pendingCount = orders.filter(o => String(o.item_status || "").toLowerCase() === "pending").length;
-  const confirmedCount = orders.filter(o => String(o.item_status || "").toLowerCase() === "confirmed").length;
+  const placedCount = orders.filter(o => ["placed", "pending"].includes(String(o.item_status || "").toLowerCase())).length;
+  const inTransitCount = orders.filter(o => ["in_transit", "confirmed", "shipped"].includes(String(o.item_status || "").toLowerCase())).length;
   const deliveredCount = orders.filter(o => String(o.item_status || "").toLowerCase() === "delivered").length;
 
   const filteredOrders = orders.filter((o) => {
@@ -78,8 +87,8 @@ export default function VendorOrders() {
       String(o.product_title || "").toLowerCase().includes(q);
 
     const s = String(o.item_status || "").toLowerCase();
-    if (statusFilter === "pending") return matchesSearch && s === "pending";
-    if (statusFilter === "confirmed") return matchesSearch && s === "confirmed";
+    if (statusFilter === "placed") return matchesSearch && ["placed", "pending"].includes(s);
+    if (statusFilter === "in_transit") return matchesSearch && ["in_transit", "confirmed", "shipped"].includes(s);
     if (statusFilter === "delivered") return matchesSearch && s === "delivered";
 
     return matchesSearch;
@@ -93,20 +102,16 @@ export default function VendorOrders() {
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
-  // Generate numbered pages with smart ellipsis (e.g. 1, 2, 3, 4, 5 or 1, ..., 4, 5, 6, ..., 10)
   const getPageNumbers = () => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    
     if (safeCurrentPage <= 3) {
       return [1, 2, 3, 4, "...", totalPages];
     }
-    
     if (safeCurrentPage >= totalPages - 2) {
       return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     }
-    
     return [1, "...", safeCurrentPage - 1, safeCurrentPage, safeCurrentPage + 1, "...", totalPages];
   };
 
@@ -125,7 +130,7 @@ export default function VendorOrders() {
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-1">
-            Review incoming customer orders, manage fulfillment schedules, and verify delivery handovers.
+            Manage order workflow: Order Placed → In Transit → Delivered (OTP Verified).
           </p>
         </div>
 
@@ -157,52 +162,52 @@ export default function VendorOrders() {
           <span className="text-2xl sm:text-3xl font-extrabold font-primary block mt-1.5">
             {orders.length}
           </span>
-          <div className="text-[11px] opacity-70 mt-1">All incoming items</div>
+          <div className="text-[11px] opacity-70 mt-1">All store items</div>
         </button>
 
         <button
-          onClick={() => setStatusFilter("pending")}
+          onClick={() => setStatusFilter("placed")}
           className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden ${
-            statusFilter === "pending"
+            statusFilter === "placed"
               ? "bg-amber-600 text-white border-amber-600 ring-2 ring-amber-600 ring-offset-2"
               : "bg-white border-slate-200 hover:border-amber-300 text-slate-800 hover:bg-amber-50/30"
           }`}
         >
           <span className={`block text-[11px] sm:text-xs uppercase tracking-wider font-bold ${
-            statusFilter === "pending" ? "text-amber-100" : "text-amber-600"
+            statusFilter === "placed" ? "text-amber-100" : "text-amber-600"
           }`}>
-            Pending Action
+            Pending Acceptance
           </span>
           <span className={`text-2xl sm:text-3xl font-extrabold font-primary block mt-1.5 ${
-            statusFilter === "pending" ? "text-white" : "text-amber-700"
+            statusFilter === "placed" ? "text-white" : "text-amber-700"
           }`}>
-            {pendingCount}
+            {placedCount}
           </span>
-          <div className={`text-[11px] mt-1 ${statusFilter === "pending" ? "text-amber-100" : "text-amber-600/80"}`}>
-            Requires scheduling
+          <div className={`text-[11px] mt-1 ${statusFilter === "placed" ? "text-amber-100" : "text-amber-600/80"}`}>
+            Awaiting dispatch acceptance
           </div>
         </button>
 
         <button
-          onClick={() => setStatusFilter("confirmed")}
+          onClick={() => setStatusFilter("in_transit")}
           className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden ${
-            statusFilter === "confirmed"
+            statusFilter === "in_transit"
               ? "bg-blue-600 text-white border-blue-600 ring-2 ring-blue-600 ring-offset-2"
               : "bg-white border-slate-200 hover:border-blue-300 text-slate-800 hover:bg-blue-50/30"
           }`}
         >
           <span className={`block text-[11px] sm:text-xs uppercase tracking-wider font-bold ${
-            statusFilter === "confirmed" ? "text-blue-100" : "text-blue-600"
+            statusFilter === "in_transit" ? "text-blue-100" : "text-blue-600"
           }`}>
-            In Progress
+            In Transit
           </span>
           <span className={`text-2xl sm:text-3xl font-extrabold font-primary block mt-1.5 ${
-            statusFilter === "confirmed" ? "text-white" : "text-blue-700"
+            statusFilter === "in_transit" ? "text-white" : "text-blue-700"
           }`}>
-            {confirmedCount}
+            {inTransitCount}
           </span>
-          <div className={`text-[11px] mt-1 ${statusFilter === "confirmed" ? "text-blue-100" : "text-blue-600/80"}`}>
-            Ready for delivery
+          <div className={`text-[11px] mt-1 ${statusFilter === "in_transit" ? "text-blue-100" : "text-blue-600/80"}`}>
+            OTP sent to customer
           </div>
         </button>
 
@@ -225,7 +230,7 @@ export default function VendorOrders() {
             {deliveredCount}
           </span>
           <div className={`text-[11px] mt-1 ${statusFilter === "delivered" ? "text-emerald-100" : "text-emerald-600/80"}`}>
-            Completed & settled
+            OTP verified
           </div>
         </button>
       </div>
@@ -246,8 +251,8 @@ export default function VendorOrders() {
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
           {[
             { id: "all", label: "All Orders", count: orders.length },
-            { id: "pending", label: "Pending", count: pendingCount },
-            { id: "confirmed", label: "In Progress", count: confirmedCount },
+            { id: "placed", label: "Order Placed", count: placedCount },
+            { id: "in_transit", label: "In Transit", count: inTransitCount },
             { id: "delivered", label: "Delivered", count: deliveredCount }
           ].map((f) => (
             <button
@@ -287,7 +292,7 @@ export default function VendorOrders() {
           <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
             {searchQuery
               ? `No orders matched your search query "${searchQuery}". Try searching by a different term.`
-              : "When customers make a purchase containing items from your store, they will appear here with instant live tracking."}
+              : "When customers place orders, they will appear here ready for dispatch and OTP verification."}
           </p>
           {searchQuery && (
             <button
@@ -324,7 +329,7 @@ export default function VendorOrders() {
                   key={order.item_id || order.order_id}
                   className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition duration-150 space-y-4"
                 >
-                  {/* Top Bar: Order ID + Date & Timestamp + Status Pill */}
+                  {/* Top Bar */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-slate-100">
                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                       <span className="font-mono font-bold text-xs sm:text-sm bg-slate-900 text-white px-2.5 py-1 rounded-lg">
@@ -340,9 +345,8 @@ export default function VendorOrders() {
                     <div>{getStatusBadge(order.item_status)}</div>
                   </div>
 
-                  {/* Middle Content: Thumbnail + Item info + Payout Breakdown */}
+                  {/* Middle Content */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    {/* Left: Product Media & Information */}
                     <div className="flex items-start sm:items-center gap-3.5">
                       <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl bg-slate-50 border border-slate-200/80 p-1 shrink-0 flex items-center justify-center overflow-hidden">
                         <img
@@ -373,19 +377,15 @@ export default function VendorOrders() {
                               </span>
                             </>
                           )}
-                          <span className="text-slate-300">•</span>
-                          <span className="text-slate-500 capitalize">
-                            Status: <strong className="text-slate-800">{order.item_status || "Pending"}</strong>
-                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Right: Vendor Net Payout Box */}
+                    {/* Right: Vendor Net Payout */}
                     <div className="bg-emerald-50/60 border border-emerald-100 sm:border-emerald-200/70 p-3 sm:py-2.5 sm:px-4 rounded-xl flex sm:flex-col items-center sm:items-end justify-between shrink-0">
                       <div className="text-[11px] sm:text-xs text-emerald-800 font-semibold flex items-center gap-1">
                         <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Your Net Payout</span>
+                        <span>Your Payout</span>
                       </div>
                       <div className="text-lg sm:text-xl font-extrabold text-emerald-950 font-primary">
                         ₹{Number(order.vendor_earning || 0).toLocaleString()}
@@ -398,18 +398,18 @@ export default function VendorOrders() {
                     {order.item_id ? (
                       <button
                         onClick={() => setTrackingItemId(order.item_id)}
-                        className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-primary bg-slate-50 hover:bg-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-200 transition"
+                        className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-primary bg-slate-50 hover:bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200 transition"
                       >
-                        <MapPin className="w-3.5 h-3.5 text-primary" />
-                        <span>Live Delivery Tracking</span>
+                        <Clock className="w-3.5 h-3.5 text-primary" />
+                        <span>View Status Progress</span>
                       </button>
                     ) : <div className="hidden sm:block" />}
 
                     <Link
                       to={`/vendor/orders/${order.order_id}`}
-                      className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-2xs active:scale-95 text-center"
+                      className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-2xs active:scale-95 text-center"
                     >
-                      <span>Manage & Deliver</span>
+                      <span>Update Status</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -418,46 +418,36 @@ export default function VendorOrders() {
             })}
           </div>
 
-          {/* 5. NUMBERED PAGINATION FOOTER (1 2 3 4 Navigation) */}
+          {/* 5. PAGINATION FOOTER */}
           {totalItems > 0 && (
             <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-              {/* Items Counter */}
               <div className="text-xs text-slate-600 font-medium">
                 Showing <strong className="text-slate-900 font-bold">{startIndex + 1}</strong>–
                 <strong className="text-slate-900 font-bold">{endIndex}</strong> of{" "}
                 <strong className="text-slate-900 font-bold">{totalItems}</strong> orders
               </div>
 
-              {/* 1 2 3 4 Numeric Page Navigation Bar */}
               <div className="flex items-center gap-1.5 flex-wrap justify-center">
-                {/* Previous Button */}
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={safeCurrentPage === 1}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-30 disabled:pointer-events-none transition shadow-2xs active:scale-95"
-                  title="Previous Page"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Prev</span>
                 </button>
 
-                {/* 1 2 3 4 Numbered Buttons */}
                 <div className="flex items-center gap-1">
                   {getPageNumbers().map((item, idx) => {
                     if (item === "...") {
                       return (
-                        <span
-                          key={`ellipsis-${idx}`}
-                          className="w-8 h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none"
-                        >
+                        <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none">
                           ...
                         </span>
                       );
                     }
-
                     const pageNum = Number(item);
                     const isActive = safeCurrentPage === pageNum;
-
                     return (
                       <button
                         key={`page-${pageNum}`}
@@ -474,12 +464,10 @@ export default function VendorOrders() {
                   })}
                 </div>
 
-                {/* Next Button */}
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safeCurrentPage === totalPages}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-30 disabled:pointer-events-none transition shadow-2xs active:scale-95"
-                  title="Next Page"
                 >
                   <span className="hidden sm:inline">Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -490,7 +478,7 @@ export default function VendorOrders() {
         </>
       )}
 
-      {/* SINGLE TRACKING MODAL */}
+      {/* TRACKING STATUS MODAL */}
       {trackingItemId && (
         <TrackingModal
           itemId={trackingItemId}

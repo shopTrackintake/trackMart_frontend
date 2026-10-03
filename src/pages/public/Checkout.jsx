@@ -20,7 +20,7 @@ const [addresses,setAddresses] = useState([]);
 const [selected,setSelected] = useState(null);
 const [editingId,setEditingId] = useState(null);
 const [showMap, setShowMap] = useState(false);
-const [paymentMethod,setPaymentMethod] = useState("COD");
+const [paymentMethod,setPaymentMethod] = useState("ONLINE");
 const [placing,setPlacing] = useState(false);
 const [showOverview,setShowOverview] = useState(false);
 
@@ -85,16 +85,12 @@ useEffect(()=>{
 },[]);
 
 /* PLACE ORDER */
- const placeOrder = async () => {
+  const placeOrder = async () => {
     if (!selected) {
       alert("Please select delivery address first.");
       return;
     }
-    if (paymentMethod === "ONLINE") {
-      await handleRazorpay();
-    } else {
-      setShowOverview(true);
-    }
+    await handleRazorpay();
   };
 
   /* RAZORPAY HANDLER */
@@ -515,30 +511,34 @@ className="border p-2 w-full rounded-lg"/>
 </div>
 
 {/* PAYMENT */}
-<div ref={paymentRef} className="border p-6 rounded-2xl space-y-4">
+<div ref={paymentRef} className="border border-slate-200 bg-white p-6 rounded-2xl space-y-4 shadow-xs">
 
-<h2 className="font-semibold text-lg">Payment Method</h2>
+<div className="flex items-center justify-between">
+  <h2 className="font-bold text-lg text-slate-900">Payment Method</h2>
+  <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full uppercase tracking-wider">
+    100% Secured Online Payment
+  </span>
+</div>
 
-<label className="flex gap-3">
-<input type="radio" value="COD"
-checked={paymentMethod==="COD"}
-onChange={()=>setPaymentMethod("COD")}/>
-Cash on Delivery
-</label>
-
-<label className="flex gap-3">
-<input type="radio" value="ONLINE"
-checked={paymentMethod==="ONLINE"}
-onChange={()=>setPaymentMethod("ONLINE")}/>
-Online Payment
-</label>
+<div className="p-4 border border-emerald-200 bg-emerald-50/60 rounded-xl flex items-center justify-between">
+  <div className="flex items-center gap-3">
+    <div className="w-5 h-5 rounded-full border-2 border-emerald-600 bg-emerald-600 flex items-center justify-center">
+      <div className="w-2 h-2 rounded-full bg-white"></div>
+    </div>
+    <div>
+      <p className="font-bold text-slate-900 text-sm">Online Payment (Razorpay)</p>
+      <p className="text-xs text-slate-500">UPI, Credit/Debit Cards, NetBanking, Wallets</p>
+    </div>
+  </div>
+  <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-md">Instant Pay</span>
+</div>
 
 <button
-onClick={placeOrder}
-
-className="bg-primary text-white px-8 py-3 rounded-xl w-full"
+  onClick={placeOrder}
+  disabled={placing}
+  className="bg-primary hover:bg-primaryHover text-white text-base font-bold py-3.5 rounded-xl w-full shadow-md transition active:scale-95 disabled:opacity-50"
 >
-Place Order
+  {placing ? "Processing Payment..." : `Pay ₹${totalAmount} & Place Order`}
 </button>
 
 </div>
