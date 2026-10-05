@@ -9,7 +9,7 @@ import {
   Heart, ChevronLeft, ChevronRight, 
   Search, X, Truck, 
   Leaf, HeartPulse, BadgeCheck, ArrowRight, ChevronDown,
-  Sparkles, CheckCircle2, Star, ShieldCheck
+  Sparkles, CheckCircle2, Star, ShieldCheck, Eye, Plus
 } from "lucide-react";
 
 export default function Home() {
@@ -680,105 +680,163 @@ export default function Home() {
                 return (
                   <div
                     key={product.id}
-                    className="bg-white border border-borderDefault rounded-2xl p-3 sm:p-4 shadow-xs hover:shadow-card transition flex flex-col justify-between group"
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    className="bg-white border border-slate-200/80 hover:border-primary/40 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-2xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer relative"
                   >
                     <div>
                       {/* PRODUCT IMAGE CONTAINER */}
-                      <div className="relative h-32 sm:h-36 md:h-44 bg-bgApp rounded-xl mb-3 flex items-center justify-center p-2 overflow-hidden border border-borderDefault/60">
+                      <div className="relative aspect-square sm:aspect-4/3 w-full bg-slate-50/80 rounded-xl sm:rounded-2xl mb-3 flex items-center justify-center p-3 overflow-hidden border border-slate-100 group-hover:bg-orange-50/20 transition-colors">
+                        
+                        {/* DISCOUNT TAG */}
                         {discount > 0 && (
-                          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs z-10">
+                          <span className="absolute top-2.5 left-2.5 bg-gradient-to-r from-red-500 to-rose-600 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg shadow-xs z-10">
                             {discount}% OFF
                           </span>
                         )}
 
+                        {/* HEALTH RATING BADGE */}
+                        {product.health_rating && (
+                          <span
+                            className={`absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-lg text-[10px] font-bold shadow-xs backdrop-blur-xs flex items-center gap-1 z-10 ${
+                              product.health_rating.toLowerCase().includes("healthy")
+                                ? "bg-emerald-600/90 text-white"
+                                : "bg-amber-600/90 text-white"
+                            }`}
+                          >
+                            <Leaf className="w-2.5 h-2.5 fill-white text-white" />
+                            <span>{product.health_rating}</span>
+                          </span>
+                        )}
+
+                        {/* PRODUCT IMAGE WITH FALLBACK */}
                         <img
                           src={product.image_url || "https://res.cloudinary.com/dsn1q7hyk/image/upload/q_auto/f_auto/v1774419499/Clinton-Foodmart_ktkl3m.jpg"}
                           alt={product.title}
-                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80";
+                          }}
+                          className="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-300 ease-out"
                         />
 
+                        {/* WISHLIST BUTTON */}
                         {role === "customer" && (
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleWishlistItem(product.id);
                             }}
-                            className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-xs z-10 hover:scale-110 transition"
+                            className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs p-1.5 rounded-full shadow-xs z-10 hover:scale-110 active:scale-90 transition cursor-pointer"
                             title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                           >
                             <Heart
                               className={`w-4 h-4 ${
-                                isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"
+                                isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-400"
                               }`}
                             />
                           </button>
                         )}
                       </div>
 
+                      {/* CATEGORY & UNIT META */}
+                      <div className="flex items-center justify-between gap-1 text-[11px] text-textMuted font-medium">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-primary truncate">
+                          {product.category_name || "Organic Food"}
+                        </span>
+                        {product.net_quantity && (
+                          <span className="text-[10px] text-slate-500 font-medium">
+                            {product.net_quantity} {product.unit || ""}
+                          </span>
+                        )}
+                      </div>
+
                       {/* TITLE */}
                       <h3
-                        onClick={() => navigate(`/product/${product.id}`)}
-                        className="font-primary text-xs sm:text-sm font-semibold text-textStrong line-clamp-1 hover:text-primary transition cursor-pointer"
+                        className="font-primary text-xs sm:text-sm font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-1 mt-1 leading-snug"
                         title={product.title}
                       >
                         {product.title}
                       </h3>
 
                       {/* DESCRIPTION */}
-                      <p className="text-textMuted text-[11px] sm:text-xs mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-slate-500 text-[11px] mt-1 line-clamp-2 leading-relaxed min-h-[32px]">
                         {product.description || "Fresh, naturally curated whole food."}
                       </p>
 
-                      {/* PRICE & HEALTH RATING BADGE */}
-                      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-1">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-primary font-bold text-sm sm:text-base">
+                      {/* PRICE SECTION */}
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-baseline justify-between">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-base sm:text-lg font-black text-slate-900 leading-none">
                             ₹{finalPrice}
                           </span>
                           {discount > 0 && (
-                            <span className="text-[10px] text-textMuted line-through">
+                            <span className="text-xs text-slate-400 line-through">
                               ₹{product.price}
                             </span>
                           )}
                         </div>
-
-                        {product.health_rating && (
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                              product.health_rating.toLowerCase().includes("healthy")
-                                ? "bg-green-100 text-green-700 border border-green-200"
-                                : "bg-red-100 text-red-700 border border-red-200"
-                            }`}
-                          >
-                            {product.health_rating}
+                        {discount > 0 && (
+                          <span className="text-[10px] font-bold text-emerald-600">
+                            Save ₹{Math.round(Number(product.price) - finalPrice)}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* ACTIONS */}
-                    <div className="mt-3.5 space-y-1.5">
+                    {/* SAME-SIZE DUAL ACTION BUTTONS */}
+                    <div className={`mt-3.5 ${canAddToCart ? "grid grid-cols-2 gap-2" : "w-full"}`}>
+                      {/* VIEW DETAILS BUTTON */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/product/${product.id}`);
+                        }}
+                        className="w-full h-9 sm:h-10 px-2 rounded-xl border border-slate-200/90 bg-slate-50/90 hover:bg-slate-100 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                        title="View Product Details"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <span className="truncate">View Details</span>
+                      </button>
+
+                      {/* ADD TO CART BUTTON / STEPPER */}
                       {canAddToCart && (
-                        <div>
+                        <div className="w-full">
                           {quantity === 0 ? (
                             <button
-                              onClick={() => increaseQty(product)}
-                              className="bg-primary hover:bg-primaryHover text-white w-full py-1.5 rounded-xl text-xs font-semibold shadow-xs transition active:scale-95 text-center"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                increaseQty(product);
+                              }}
+                              className="w-full h-9 sm:h-10 px-2 rounded-xl bg-primary hover:bg-primaryHover text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                             >
-                              Add to Cart
+                              <Plus className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">Add to Cart</span>
                             </button>
                           ) : (
-                            <div className="flex items-center justify-center gap-2 border border-borderDefault rounded-xl py-1 bg-bgApp">
+                            <div className="w-full h-9 sm:h-10 flex items-center justify-between border border-primary/30 rounded-xl px-1.5 bg-orange-50/70 shadow-2xs">
                               <button
-                                onClick={() => decreaseQty(product)}
-                                className="font-bold text-sm px-2 text-textStrong hover:text-red-500"
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  decreaseQty(product);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-red-50 hover:text-red-600 flex items-center justify-center font-bold text-xs shadow-2xs transition active:scale-90 cursor-pointer shrink-0"
                               >
                                 -
                               </button>
-                              <span className="font-bold text-xs text-textStrong">{quantity}</span>
+                              <span className="font-extrabold text-[11px] text-primary px-1 truncate">
+                                {quantity} in cart
+                              </span>
                               <button
-                                onClick={() => increaseQty(product)}
-                                className="font-bold text-sm px-2 text-textStrong hover:text-primary"
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  increaseQty(product);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-primary text-white hover:bg-primaryHover flex items-center justify-center font-bold text-xs shadow-2xs transition active:scale-90 cursor-pointer shrink-0"
                               >
                                 +
                               </button>
@@ -786,13 +844,6 @@ export default function Home() {
                           )}
                         </div>
                       )}
-
-                      <button
-                        onClick={() => navigate(`/product/${product.id}`)}
-                        className="border border-primary text-primary hover:bg-primary hover:text-white w-full py-1.5 rounded-xl text-xs font-semibold transition"
-                      >
-                        View Details
-                      </button>
                     </div>
 
                   </div>
