@@ -1,8 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function PublicLayout() {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+  const isProductPage = location.pathname.startsWith("/product/");
+  const isCart = location.pathname === "/cart";
+  const isAuth = ["/login", "/register", "/apply-vendor"].includes(location.pathname);
+
   return (
     <div className="min-h-screen flex flex-col bg-bgApp">
 
@@ -12,13 +18,17 @@ export default function PublicLayout() {
       </div>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-10">
-
-        <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 sm:p-6 md:p-8 min-h-[60vh]">
+      {isHome || isProductPage || isCart || isAuth ? (
+        <main className="flex-1 w-full">
           <Outlet />
-        </div>
-
-      </main>
+        </main>
+      ) : (
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-10">
+          <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 sm:p-6 md:p-8 min-h-[60vh]">
+            <Outlet />
+          </div>
+        </main>
+      )}
 
       {/* FOOTER */}
       <Footer />

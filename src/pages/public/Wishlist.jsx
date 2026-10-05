@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getWishlist, removeWishlist } from "../../services/wishlistService";
-import { updateCartItem } from "../../services/cartService";
+import { useCart } from "../../context/CartContext";
+import { useToast } from "../../context/ToastContext";
 
 export default function Wishlist(){
 
 const [items,setItems] = useState([]);
 const navigate = useNavigate();
+const { addToCart: cartAdd } = useCart();
+const { toast } = useToast();
 
 useEffect(()=>{
 
@@ -31,8 +34,10 @@ const removeItem = async(id)=>{
 try{
 await removeWishlist(id);
 setItems(prev=>prev.filter(i=>i.wishlist_id !== id));
+toast.info("Item removed from your wishlist.");
 }catch(err){
 console.log(err);
+toast.error("Failed to remove item from wishlist.");
 }
 };
 
@@ -41,9 +46,9 @@ console.log(err);
 const addToCart = async (item) => {
   try {
 
-    await updateCartItem(item.id, 1);
+    await cartAdd(item, 1);
 
-    alert("Item added to cart");
+    toast.success("Item moved to your cart!", "Added to Cart");
 
     await removeWishlist(item.wishlist_id);
 
@@ -53,6 +58,7 @@ const addToCart = async (item) => {
 
   } catch (err) {
     console.log(err);
+    toast.error("Failed to add item to cart.");
   }
 };
 

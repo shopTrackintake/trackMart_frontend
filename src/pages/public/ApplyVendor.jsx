@@ -1,23 +1,25 @@
 import { useState } from "react";
 import api from "../../services/api";
 import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
+import PhoneInputWithCountry from "../../components/PhoneInputWithCountry";
 import { 
-  Building2, User, Mail, Phone, MapPin, 
+  Building2, User, Mail, MapPin, 
   CreditCard, ShieldCheck, Lock, ArrowRight,
-  FileText, CheckCircle2, AlertCircle
+  FileText, CheckCircle2, AlertCircle, Eye, EyeOff, Store, Sparkles
 } from "lucide-react";
 
 export default function ApplyVendor() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
     owner_name: "",
     business_name: "",
     email: "",
-    phone: "",
     shop_address: "",
     pincode: "",
     password: "",
@@ -30,10 +32,12 @@ export default function ApplyVendor() {
     fssai_number: ""
   });
 
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   const handleChange = (field, value) => {
     setForm(prev => {
       const updated = { ...prev, [field]: value };
-      // Keep name and owner_name synchronized if owner_name is typed
       if (field === "owner_name") {
         updated.name = value;
       }
@@ -43,291 +47,340 @@ export default function ApplyVendor() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
-    if (!form.business_name || !form.owner_name || !form.email || !form.phone || !form.password) {
-      setError("Please fill in all required basic business details.");
+    if (!form.business_name.trim() || !form.owner_name.trim()) {
+      toast.warning("Please provide your store name and owner name.", "Missing Business Info");
+      return;
+    }
+
+    if (!form.email.trim()) {
+      toast.warning("Please enter your official business email.", "Missing Email");
+      return;
+    }
+
+    const cleanCountryCode = countryCode.trim();
+    if (!cleanCountryCode || cleanCountryCode === "+" || cleanCountryCode.length < 2) {
+      toast.warning("Please specify a valid country calling code (e.g. +91, +1, +44).", "Invalid Country Code");
+      return;
+    }
+
+    if (!phoneNumber.trim() || phoneNumber.length < 7) {
+      toast.warning("Please enter a valid phone number with at least 7 digits.", "Missing Phone");
+      return;
+    }
+
+    if (!form.shop_address.trim() || !form.pincode.trim()) {
+      toast.warning("Please provide your store pickup address and pincode.", "Missing Address");
+      return;
+    }
+
+    if (!form.password || form.password.length < 6) {
+      toast.warning("Password must be at least 6 characters.", "Weak Password");
       return;
     }
 
     try {
       setLoading(true);
+
+      const fullPhone = `${countryCode} ${phoneNumber.trim()}`;
+
       await api.post("/auth/register", {
         ...form,
+        phone: fullPhone,
         name: form.owner_name || form.name,
         role: "vendor"
       });
 
-      alert("🎉 Vendor registration submitted successfully! Your account is pending admin verification. You will be able to log in once approved.");
-      navigate("/login");
+      toast.success(
+        "🎉 Application submitted! Your vendor account is under review by our compliance team. You will be able to log in once approved.",
+        "Application Received"
+      );
+
+      navigate("/login", { state: { email: form.email.trim() } });
     } catch (err) {
       console.error("Vendor registration error:", err);
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      const msg = err.response?.data?.message || "Registration failed. Please review your entries and try again.";
+      toast.error(msg, "Submission Error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[85vh] py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto animate-fadeIn">
+    <div className="min-h-[85vh] py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto animate-fadeIn">
+      
       {/* HEADER */}
-      <div className="text-center mb-8 space-y-2">
+      <div className="text-center mb-8 space-y-2.5">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary uppercase tracking-wider">
-          Merchant Onboarding
+          <Store className="w-3.5 h-3.5" />
+          <span>Merchant Onboarding Portal</span>
         </span>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-primary">
-          Register as a TrackMart Vendor
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-textStrong font-primary tracking-tight">
+          Partner with TrackMart
         </h1>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto">
-          Join TrackMart's verified health & wellness marketplace. Reach thousands of local health-conscious buyers.
+        <p className="text-textMuted text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+          Sell your certified organic groceries, health foods, and farm-fresh produce to thousands of conscious customers across the network.
         </p>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Registration Issue</p>
-            <p className="text-xs text-red-600 mt-0.5">{error}</p>
-          </div>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         
         {/* SECTION 1: BUSINESS & OWNER DETAILS */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+        <div className="bg-white border border-borderDefault rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
+          <div className="flex items-center gap-3 pb-3 border-b border-borderDefault">
+            <div className="w-9 h-9 rounded-xl bg-orange-100 text-primary flex items-center justify-center font-bold text-sm shadow-xs">
               1
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 font-primary">
-                Store & Owner Information
+              <h2 className="text-base sm:text-lg font-bold text-textStrong font-primary">
+                Store &amp; Contact Information
               </h2>
-              <p className="text-xs text-slate-500">Contact and location details for customer discovery and pickups</p>
+              <p className="text-xs text-textMuted">Contact details and registered pickup address for order fulfillment</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            {/* BUSINESS NAME */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Business / Store Name <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">
+                Store / Brand Name <span className="text-primary">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <Building2 className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
                 <input
                   required
                   type="text"
                   placeholder="e.g. Nature Organics Store"
                   value={form.business_name}
                   onChange={(e) => handleChange("business_name", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition"
                 />
               </div>
             </div>
 
+            {/* OWNER FULL NAME */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Owner Full Name <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">
+                Authorized Owner Name <span className="text-primary">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <User className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
                 <input
                   required
                   type="text"
                   placeholder="e.g. Rajesh Sharma"
                   value={form.owner_name}
                   onChange={(e) => handleChange("owner_name", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition"
                 />
               </div>
             </div>
 
+            {/* EMAIL */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Email Address (Login ID) <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">
+                Business Email (Login ID) <span className="text-primary">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
                 <input
                   required
                   type="email"
                   placeholder="vendor@business.com"
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Business Phone Number <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  required
-                  type="tel"
-                  placeholder="+91 9876543210"
-                  value={form.phone}
-                  onChange={(e) => handleChange("phone", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
-                />
-              </div>
-            </div>
+            {/* PHONE WITH COUNTRY CODE */}
+            <PhoneInputWithCountry
+              id="vendor-apply-phone"
+              countryCode={countryCode}
+              onCountryCodeChange={setCountryCode}
+              phoneNumber={phoneNumber}
+              onPhoneNumberChange={setPhoneNumber}
+              required={true}
+              label="Business Mobile Number"
+              placeholder="98765 43210"
+            />
 
+            {/* SHOP ADDRESS */}
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-bold text-slate-700">Store / Pickup Address <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">
+                Store / Warehouse Pickup Address <span className="text-primary">*</span>
+              </label>
+              <div className="relative flex items-start">
+                <MapPin className="w-4 h-4 text-textMuted absolute left-3.5 top-3.5 pointer-events-none" />
                 <textarea
                   required
                   rows={2}
-                  placeholder="Complete shop address (Shop number, market, road/street, area)..."
+                  placeholder="Complete pickup address (Shop/Unit number, road/street, commercial market, city)..."
                   value={form.shop_address}
                   onChange={(e) => handleChange("shop_address", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition leading-relaxed"
                 />
               </div>
             </div>
 
+            {/* PINCODE */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Pincode / Postal Code <span className="text-red-500">*</span></label>
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">
+                Pincode / Postal Code <span className="text-primary">*</span>
+              </label>
               <input
                 required
                 type="text"
                 placeholder="e.g. 400001"
                 value={form.pincode}
                 onChange={(e) => handleChange("pincode", e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono"
+                className="w-full px-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono"
               />
             </div>
 
+            {/* PASSWORD */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Create Password <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">
+                Vendor Portal Password <span className="text-primary">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <Lock className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
                 <input
                   required
-                  type="password"
-                  placeholder="Min 6 characters"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Minimum 6 characters"
                   value={form.password}
                   onChange={(e) => handleChange("password", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                  className="w-full pl-10 pr-11 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 text-textMuted hover:text-textStrong p-1 transition"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         {/* SECTION 2: BANK & SETTLEMENT DETAILS */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+        <div className="bg-white border border-borderDefault rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
+          <div className="flex items-center gap-3 pb-3 border-b border-borderDefault">
+            <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shadow-xs">
               2
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 font-primary">
-                Bank & Settlement Details
+              <h2 className="text-base sm:text-lg font-bold text-textStrong font-primary">
+                Bank &amp; Settlement Account
               </h2>
-              <p className="text-xs text-slate-500">Earnings from online & customer orders will be deposited to this account</p>
+              <p className="text-xs text-textMuted">Disbursements from customer orders will be deposited automatically to this account</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Account Holder Name</label>
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">Account Holder Name</label>
               <input
                 type="text"
-                placeholder="Name as printed on passbook / cheque"
+                placeholder="Name as printed on passbook"
                 value={form.bank_holder_name}
                 onChange={(e) => handleChange("bank_holder_name", e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                className="w-full px-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Bank Account Number</label>
-              <input
-                type="text"
-                placeholder="e.g. 01234567890123"
-                value={form.bank_account_number}
-                onChange={(e) => handleChange("bank_account_number", e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono"
-              />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">Bank Account Number</label>
+              <div className="relative flex items-center">
+                <CreditCard className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="9 to 18 digit account number"
+                  value={form.bank_account_number}
+                  onChange={(e) => handleChange("bank_account_number", e.target.value)}
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Bank IFSC Code</label>
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">Bank IFSC Code</label>
               <input
                 type="text"
                 placeholder="e.g. HDFC0001234"
                 value={form.bank_ifsc}
                 onChange={(e) => handleChange("bank_ifsc", e.target.value.toUpperCase())}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono uppercase"
+                className="w-full px-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Settlement UPI ID <span className="text-slate-400 font-normal">(Instant Settlement)</span></label>
-              <div className="relative">
-                <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="e.g. yourname@okicici / upi"
-                  value={form.upi_id}
-                  onChange={(e) => handleChange("upi_id", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono"
-                />
-              </div>
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">Instant UPI ID (Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. merchant@okhdfcbank"
+                value={form.upi_id}
+                onChange={(e) => handleChange("upi_id", e.target.value)}
+                className="w-full px-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono"
+              />
             </div>
           </div>
         </div>
 
-        {/* SECTION 3: LEGAL, TAX & COMPLIANCE */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
+        {/* SECTION 3: TAX & REGULATORY COMPLIANCE */}
+        <div className="bg-white border border-borderDefault rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
+          <div className="flex items-center gap-3 pb-3 border-b border-borderDefault">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm shadow-xs">
               3
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 font-primary">
-                Tax & Regulatory Compliance
+              <h2 className="text-base sm:text-lg font-bold text-textStrong font-primary">
+                Tax &amp; Legal Compliance
               </h2>
-              <p className="text-xs text-slate-500">Government identification & licenses for seller authenticity</p>
+              <p className="text-xs text-textMuted">Required for marketplace legal compliance and automated invoicing</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">PAN Card Number</label>
-              <div className="relative">
-                <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">PAN Number</label>
+              <div className="relative flex items-center">
+                <FileText className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="ABCDE1234F"
+                  placeholder="10-digit PAN"
                   value={form.pan_number}
                   onChange={(e) => handleChange("pan_number", e.target.value.toUpperCase())}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono uppercase"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono uppercase"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">GSTIN (Optional)</label>
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">GSTIN Number</label>
               <input
                 type="text"
-                placeholder="22AAAAA0000A1Z5"
+                placeholder="15-digit GSTIN"
                 value={form.gst_number}
                 onChange={(e) => handleChange("gst_number", e.target.value.toUpperCase())}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono uppercase"
+                className="w-full px-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono uppercase"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">FSSAI License No (Optional)</label>
-              <div className="relative">
-                <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <label className="text-xs font-bold text-textStrong uppercase tracking-wider">FSSAI License No</label>
+              <div className="relative flex items-center">
+                <ShieldCheck className="w-4 h-4 text-textMuted absolute left-3.5 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="14-digit FSSAI No"
+                  placeholder="14-digit FSSAI"
                   value={form.fssai_number}
                   onChange={(e) => handleChange("fssai_number", e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono"
+                  className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-bgApp border border-borderDefault rounded-xl text-xs sm:text-sm text-textStrong focus:outline-none focus:border-primary focus:bg-white transition font-mono"
                 />
               </div>
             </div>
@@ -339,23 +392,26 @@ export default function ApplyVendor() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primaryHover text-white py-3.5 px-6 rounded-xl font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-base active:scale-[0.99] disabled:opacity-50"
+            className="w-full btn-primary py-4 px-6 rounded-2xl font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? (
-              <span>Submitting Registration...</span>
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Submitting Merchant Application...</span>
+              </>
             ) : (
               <>
-                <span>Submit Vendor Application</span>
+                <span>Submit Merchant Application</span>
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
           </button>
         </div>
 
-        <div className="text-center text-xs text-slate-500 pt-2">
-          Already have an approved vendor account?{" "}
+        <div className="text-center text-xs text-textMuted pt-1 pb-4">
+          Already have an approved merchant account?{" "}
           <Link to="/login" className="text-primary font-bold hover:underline">
-            Log in here
+            Sign In to Vendor Dashboard
           </Link>
         </div>
 

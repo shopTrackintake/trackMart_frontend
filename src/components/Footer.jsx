@@ -1,5 +1,8 @@
 import React, { useContext } from "react";
-import { Mail, Phone, Heart, ShieldCheck, ArrowRight, Zap, CheckCircle2 } from "lucide-react";
+import { 
+  Mail, Phone, ShieldCheck, ArrowRight, Zap, 
+  CheckCircle2, Instagram, Facebook, Twitter, Linkedin, Youtube 
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -183,97 +186,174 @@ export default function Footer() {
     );
   }
 
-  // CUSTOMER / PUBLIC FOOTER
-  const dashboardPath = role === "admin" ? "/admin" : "/customer";
-
+  // CUSTOMER / PUBLIC FOOTER (CONCISE, RELEVANT & MOBILE RESPONSIVE)
   return (
     <footer className="bg-white border-t border-slate-200 text-slate-600 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
 
-          {/* 1. BRAND */}
-          <div className="space-y-2">
-            <Link to="/" className="text-lg font-bold flex items-center gap-1.5">
-              <span className="text-primary">Track</span>
-              <span className="text-slate-900">Mart</span>
+          {/* 1. BRAND & SOCIAL MEDIA */}
+          <div className="col-span-2 md:col-span-1 space-y-3">
+            <Link to="/" className="text-xl font-bold flex items-center gap-1">
+              <span className="text-primary font-black">Track</span>
+              <span className="text-slate-900 font-black">Mart</span>
             </Link>
-            <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
-              Your smart destination for online grocery shopping and live order delivery tracking.
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xs">
+              Smart grocery shopping with verified nutritional insights and seamless order delivery.
             </p>
-          </div>
-
-          {/* 2. QUICK LINKS */}
-          <div className="space-y-2">
-            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-              Quick Links
-            </h4>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:text-sm">
-              <Link to="/" className="text-slate-600 hover:text-primary transition py-0.5">
-                Shop
-              </Link>
-              {role ? (
-                <>
-                  <Link to={dashboardPath} className="text-slate-600 hover:text-primary transition py-0.5">
-                    Dashboard
-                  </Link>
-                  <Link to="/profile" className="text-slate-600 hover:text-primary transition py-0.5">
-                    Profile
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="text-slate-600 hover:text-primary transition py-0.5">
-                    Login
-                  </Link>
-                  <Link to="/register" className="text-slate-600 hover:text-primary transition py-0.5">
-                    Register
-                  </Link>
-                </>
-              )}
-              <Link to="/apply-vendor" className="text-primary font-semibold hover:underline py-0.5">
-                Become Seller
-              </Link>
-            </div>
-          </div>
-
-          {/* 3. SUPPORT & CONTACT */}
-          <div className="space-y-2">
-            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-              Support & Legal
-            </h4>
-            <div className="space-y-1.5 text-xs sm:text-sm">
-              <div className="flex items-center gap-2 text-slate-600">
+            <div className="space-y-1.5 text-xs sm:text-sm pt-0.5">
+              <a 
+                href="mailto:support@trackmart.com" 
+                className="flex items-center gap-2 text-slate-600 hover:text-primary transition"
+              >
                 <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
-                <a href="mailto:support@trackmart.com" className="hover:text-primary transition">
-                  support@trackmart.com
-                </a>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600">
+                <span>support@trackmart.com</span>
+              </a>
+              <a 
+                href="tel:+918001234567" 
+                className="flex items-center gap-2 text-slate-600 hover:text-primary transition"
+              >
                 <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                <a href="tel:+918001234567" className="hover:text-primary transition">
-                  +91 (800) 123-4567
+                <span>+91 (800) 123-4567</span>
+              </a>
+            </div>
+
+            {/* SOCIAL MEDIA ICONS */}
+            <div className="pt-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Follow Us</span>
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-pink-600 hover:border-pink-200 hover:bg-pink-50 transition"
+                >
+                  <Instagram className="w-4 h-4" />
                 </a>
-              </div>
-              <div className="flex items-center gap-2.5 pt-1 text-xs text-slate-500">
-                <Link to="/privacy" className="hover:text-primary transition">Privacy</Link>
-                <span>•</span>
-                <Link to="/terms" className="hover:text-primary transition">Terms</Link>
-                <span>•</span>
-                <Link to="/refund" className="hover:text-primary transition">Refunds</Link>
-                <span>•</span>
-                <Link to="/contact" className="hover:text-primary transition">Contact</Link>
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter"
+                  className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-sky-500 hover:border-sky-200 hover:bg-sky-50 transition"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50 transition"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube"
+                  className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition"
+                >
+                  <Youtube className="w-4 h-4" />
+                </a>
               </div>
             </div>
+          </div>
+
+          {/* 2. FOR BUYERS */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+              For Buyers
+            </h4>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              <li>
+                <Link to="/" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Shop Products
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Buyer Login
+                </Link>
+              </li>
+              <li>
+                <Link to="/register" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Create Account
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* 3. FOR SELLERS */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+              For Sellers
+            </h4>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              <li>
+                <Link to="/apply-vendor" className="text-primary font-semibold hover:underline block py-0.5">
+                  Become a Seller
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Vendor Login
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* 4. SUPPORT & HELP */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+              Support & Help
+            </h4>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              <li>
+                <Link to="/contact" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/shipping" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Shipping Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/refund" className="text-slate-600 hover:text-primary transition block py-0.5">
+                  Refund Policy
+                </Link>
+              </li>
+            </ul>
           </div>
 
         </div>
 
-        {/* COPYRIGHT */}
-        <div className="mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-          <p className="flex items-center gap-1">
-            © {currentYear} <span className="font-semibold text-slate-800">TrackMart</span>. All rights reserved. Made with <Heart className="w-3 h-3 text-red-500 fill-red-500 inline" />
+        {/* BOTTOM COPYRIGHT & LEGAL BAR */}
+        <div className="mt-8 sm:mt-10 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <p className="text-center sm:text-left">
+            © {currentYear} TrackMart. All rights reserved.
           </p>
-          <span className="text-slate-400">Secure Multi-Vendor Platform</span>
+          <div className="flex items-center gap-4 text-xs font-medium">
+            <Link to="/terms" className="text-slate-500 hover:text-primary transition">
+              Terms of Service
+            </Link>
+            <span className="text-slate-300">•</span>
+            <Link to="/privacy" className="text-slate-500 hover:text-primary transition">
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

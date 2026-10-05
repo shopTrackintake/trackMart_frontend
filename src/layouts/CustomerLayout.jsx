@@ -1,9 +1,12 @@
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 export default function CustomerLayout() {
+  const location = useLocation();
+  const isCart = location.pathname.includes("/cart");
+
   return (
     <div className="flex min-h-screen bg-bgApp">
 
@@ -19,10 +22,14 @@ export default function CustomerLayout() {
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 p-4 md:p-10">
-          <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 md:p-8 min-h-[60vh]">
+        <div className="flex-1 p-4 md:p-8">
+          {isCart ? (
             <Outlet />
-          </div>
+          ) : (
+            <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 md:p-8 min-h-[60vh]">
+              <Outlet />
+            </div>
+          )}
         </div>
 
         {/* Footer */}
