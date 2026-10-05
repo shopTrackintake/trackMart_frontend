@@ -43,82 +43,31 @@ export default function Home() {
   /* ================= 1. HERO SLIDES DATA ================= */
   const heroData = [
     {
-      badge: "Certified Organic & Lab-Audited",
-      title: "Radically Clean Groceries,",
-      highlight: "Nutritionally Verified.",
-      desc: "Connect directly with certified organic growers and wellness brands. Every food item is screened for artificial preservatives, refined sugars, and chemical residues.",
-      bullets: [
-        "100% Ingredient Disclosure: Zero concealed binders, palm oil, or chemicals",
-        "Automated Health Score on every item calculated from nutrient density",
-        "Direct-from-farm dispatch with temperature-controlled cold-chain care"
-      ],
-      stats: [
-        { label: "Screened Items", val: "500+" },
-        { label: "Audited Farms", val: "150+" },
-        { label: "Purity Grade", val: "100%" }
-      ],
-      cta: "Shop Fresh Catalog",
+      title: "Pure, Nutrient-Dense Groceries.",
+      highlight: "Delivered Fresh To Your Door.",
+      desc: "Clean, whole foods sourced directly from certified organic farmers. Every batch is verified for zero harmful pesticides, zero hidden chemicals, and uncompromised freshness.",
+      cta: "Shop Fresh Produce",
       link: "products-section",
-      secondaryCta: "How We Grade Food",
-      secondaryLink: "about-section",
       image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80",
-      floatingBadge: {
-        tag: "Grade A Health Score",
-        title: "98/100 Nutrient Density",
-        subtitle: "Lab & FSSAI Screened Batch"
-      }
+      tag: "Fresh Harvest • 100% Traceable"
     },
     {
-      badge: "Targeted Whole Food Nutrition",
-      title: "Tailored Whole Foods for",
-      highlight: "Everyday Peak Vitality.",
-      desc: "Discover cold-pressed natural oils, ancient whole millets, organic raw honey, and gut-friendly probiotics formulated to nourish energy, recovery, and long-term stamina.",
-      bullets: [
-        "Clinically reviewed macro indicators (Calories, Protein, Fiber & Natural Fats)",
-        "Zero synthetic colorants, preservatives, or refined sugar additions",
-        "Free Express Delivery across India on all orders over ₹499"
-      ],
-      stats: [
-        { label: "Active Buyers", val: "25k+" },
-        { label: "Chemical Free", val: "100%" },
-        { label: "Avg Dispatch", val: "24-48h" }
-      ],
+      title: "Science-Backed Whole Foods.",
+      highlight: "Crafted For Natural Vitality.",
+      desc: "Nourish your body with cold-pressed pure oils, ancient millets, and gut-friendly probiotics formulated for balanced immunity, sustained energy, and whole-body wellness.",
       cta: "Explore Healthy Essentials",
       link: "products-section",
-      secondaryCta: "Our Quality Standards",
-      secondaryLink: "about-section",
       image: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=1200&q=80",
-      floatingBadge: {
-        tag: "Cold-Extracted & Raw",
-        title: "Zero High-Heat Damage",
-        subtitle: "100% Retained Bio-Nutrients"
-      }
+      tag: "100% Raw • Zero Chemical Additives"
     },
     {
-      badge: "Science-Backed Food Standards",
       title: "Honest Food Labeling.",
       highlight: "Zero Deceptive Marketing.",
-      desc: "We eliminate label confusion by analyzing actual laboratory nutrition panels and calculating automated nutrient density scores, giving your family 100% peace of mind.",
-      bullets: [
-        "Complete ingredients disclosure with transparent nutritional breakdowns",
-        "Artisan preparation techniques with harvest & batch traceability",
-        "Secure checkout with doorstep temperature-safe delivery"
-      ],
-      stats: [
-        { label: "Preservatives", val: "0%" },
-        { label: "Verified Vendors", val: "100%" },
-        { label: "Customer Trust", val: "4.9/5" }
-      ],
-      cta: "Browse Verified Products",
+      desc: "We screen every ingredient against laboratory nutrition benchmarks and calculate automated health grades, giving your family complete clarity and peace of mind.",
+      cta: "Browse Verified Catalog",
       link: "products-section",
-      secondaryCta: "Meet Our Farmers",
-      secondaryLink: "about-section",
       image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=1200&q=80",
-      floatingBadge: {
-        tag: "Clean Label Certified",
-        title: "Zero Harmful Binders",
-        subtitle: "Verified Non-GMO Batches"
-      }
+      tag: "Grade A Health Score • Lab Tested"
     }
   ];
 
@@ -290,103 +239,87 @@ export default function Home() {
   return (
     <div className="w-full overflow-x-clip flex flex-col">
 
-      {/* ================= 1. HERO SECTION (BG: bgSurfaceAlt, DISTINCT FULL-WIDTH BAND) ================= */}
-      <section className="w-full bg-bgSurfaceAlt border-b border-borderDefault/80 py-8 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ================= 1. HERO SECTION (EXPANSIVE, AIRY & ELEGANT) ================= */}
+      <section className="relative w-full bg-gradient-to-b from-[#FFF8F2] via-[#FFFDF9] to-white border-b border-borderDefault/80 overflow-hidden">
+        {/* Soft background ambient glow */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl -z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-10 w-80 h-80 bg-emerald-50/50 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-          {/* MAIN HERO SHOWCASE CARD */}
-          <div className="relative w-full rounded-3xl overflow-hidden shadow-card border border-borderDefault bg-white">
-            <div className="flex flex-col lg:flex-row items-stretch min-h-[440px] lg:min-h-[480px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10 sm:pt-12 sm:pb-14 lg:pt-16 lg:pb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* LEFT — EDITORIAL CONTENT */}
+            <div className="lg:col-span-7 flex flex-col items-start space-y-4 sm:space-y-6">
+              
+              {/* Majestic Headline */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.18]">
+                {heroData[heroIndex].title}{" "}
+                <span className="text-primary block sm:inline">
+                  {heroData[heroIndex].highlight}
+                </span>
+              </h1>
 
-              {/* LEFT — RICH EDITORIAL CONTENT */}
-              <div className="w-full lg:w-7/12 flex flex-col justify-between p-6 sm:p-8 lg:p-10 bg-white space-y-5">
-                
-                {/* HEADER CONTENT */}
-                <div className="space-y-3.5">
-                  {/* BADGE PILL */}
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 tracking-wide w-fit">
-                    <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span>{heroData[heroIndex].badge}</span>
-                  </div>
+              {/* Subhead / Description */}
+              <p className="text-sm sm:text-base text-textDefault leading-relaxed max-w-xl">
+                {heroData[heroIndex].desc}
+              </p>
 
-                  {/* TITLE */}
-                  <h1 className="text-2xl sm:text-3xl lg:text-[2.2rem] font-extrabold text-textStrong tracking-tight leading-[1.18]">
-                    {heroData[heroIndex].title}{" "}
-                    <span className="text-primary block mt-0.5">
-                      {heroData[heroIndex].highlight}
-                    </span>
-                  </h1>
+              {/* CTA BUTTON & SLIDE DOTS */}
+              <div className="pt-2 flex flex-wrap items-center gap-5">
+                <button
+                  onClick={() => handleHeroCta(heroData[heroIndex].link)}
+                  className="btn-primary text-sm px-8 py-3.5 rounded-xl cursor-pointer shadow-md hover:shadow-lg transition-all active:scale-95 font-bold flex items-center justify-center gap-2.5"
+                >
+                  <span>{heroData[heroIndex].cta}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
 
-                  {/* DESCRIPTION */}
-                  <p className="text-xs sm:text-sm text-textDefault leading-relaxed max-w-xl">
-                    {heroData[heroIndex].desc}
-                  </p>
-
-                  {/* 3 VERIFICATION BULLET POINTS */}
-                  <div className="space-y-1.5 pt-1">
-                    {heroData[heroIndex].bullets.map((bullet, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs text-textStrong font-medium">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>{bullet}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 3-METRIC STATS STRIP */}
-                  <div className="pt-2 grid grid-cols-3 gap-3 border-y border-borderDefault/70 py-2.5 max-w-md">
-                    {heroData[heroIndex].stats.map((stat, idx) => (
-                      <div key={idx} className="text-left">
-                        <span className="text-sm sm:text-base font-extrabold text-textStrong font-mono block leading-none">
-                          {stat.val}
-                        </span>
-                        <span className="text-[10px] sm:text-[11px] text-textMuted block font-medium mt-1">
-                          {stat.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* DUAL CTA & SLIDE CONTROLS */}
-                <div className="pt-1 flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-2.5">
+                {/* Slide Navigation Dots */}
+                <div className="flex items-center gap-2">
+                  {heroData.map((_, i) => (
                     <button
-                      onClick={() => handleHeroCta(heroData[heroIndex].link)}
-                      className="btn-primary text-xs sm:text-sm px-6 py-2.5 rounded-xl cursor-pointer shadow-md hover:shadow-lg transition active:scale-95 font-bold flex items-center gap-2"
-                    >
-                      <span>{heroData[heroIndex].cta}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      onClick={() => handleHeroCta(heroData[heroIndex].secondaryLink)}
-                      className="text-xs sm:text-sm px-4 py-2 rounded-xl cursor-pointer bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-primary/40 text-textStrong hover:text-primary transition font-semibold"
-                    >
-                      {heroData[heroIndex].secondaryCta}
-                    </button>
-                  </div>
-
-                  {/* SLIDE PROGRESS DOTS */}
-                  <div className="flex items-center gap-1.5">
-                    {heroData.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setHeroIndex(i)}
-                        aria-label={`View slide ${i + 1}`}
-                        className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                          i === heroIndex
-                            ? "w-7 bg-primary"
-                            : "w-2 bg-gray-300 hover:bg-gray-400"
-                        }`}
-                      />
-                    ))}
-                  </div>
+                      key={i}
+                      onClick={() => setHeroIndex(i)}
+                      aria-label={`View slide ${i + 1}`}
+                      className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                        i === heroIndex
+                          ? "w-8 bg-primary"
+                          : "w-2.5 bg-slate-200 hover:bg-slate-300"
+                      }`}
+                    />
+                  ))}
                 </div>
-
               </div>
 
-              {/* RIGHT — IMAGE BANNER WITH FLOATING OVERLAY CARD */}
-              <div className="w-full lg:w-5/12 relative min-h-[260px] lg:min-h-auto overflow-hidden bg-slate-100">
+              {/* BLENDED TRUST HIGHLIGHTS (SEAMLESS IN HERO) */}
+              <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-textDefault">
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-textStrong font-semibold">Verified Quality</span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <div className="w-6 h-6 rounded-full bg-orange-50 text-primary flex items-center justify-center shrink-0">
+                    <Truck className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-textStrong font-semibold">Safe Express Delivery</span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <BadgeCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-textStrong font-semibold">FSSAI Certified</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* RIGHT — SPACIOUS HERO IMAGE SHOWCASE */}
+            <div className="lg:col-span-5 relative w-full">
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-100 aspect-4/3 sm:aspect-16/10 lg:aspect-4/3 group">
                 <img
                   key={heroIndex}
                   src={heroData[heroIndex].image}
@@ -394,93 +327,29 @@ export default function Home() {
                   className="w-full h-full object-cover transition-opacity duration-700"
                 />
 
-                {/* FLOATING GLASSMORPHIC BADGE OVERLAY */}
-                {heroData[heroIndex].floatingBadge && (
-                  <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md border border-white/80 rounded-2xl p-3 shadow-lg max-w-[220px] z-10 space-y-1 animate-fadeIn">
-                    <div className="flex items-center justify-between gap-1.5">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">
-                        {heroData[heroIndex].floatingBadge.tag}
-                      </span>
-                      <div className="flex items-center text-amber-500">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      </div>
-                    </div>
-                    <p className="text-xs font-bold text-slate-900 leading-tight">
-                      {heroData[heroIndex].floatingBadge.title}
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      {heroData[heroIndex].floatingBadge.subtitle}
-                    </p>
-                  </div>
-                )}
+                {/* Subtle Farm-Fresh Badge */}
+                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md border border-white/80 rounded-xl px-3.5 py-1.5 shadow-sm z-10 flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <Leaf className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{heroData[heroIndex].tag}</span>
+                </div>
 
-                {/* SLIDE ARROWS */}
+                {/* Subtle Prev/Next Navigation Controls */}
                 <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
                   <button
                     onClick={() => setHeroIndex((heroIndex - 1 + heroData.length) % heroData.length)}
                     aria-label="Previous slide"
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-textStrong shadow-sm backdrop-blur-xs border border-white/60 transition active:scale-90 cursor-pointer"
+                    className="w-9 h-9 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-slate-800 shadow-md backdrop-blur-xs border border-white/60 transition-all active:scale-90 cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setHeroIndex((heroIndex + 1) % heroData.length)}
                     aria-label="Next slide"
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-textStrong shadow-sm backdrop-blur-xs border border-white/60 transition active:scale-90 cursor-pointer"
+                    className="w-9 h-9 rounded-full flex items-center justify-center bg-white/90 hover:bg-white text-slate-800 shadow-md backdrop-blur-xs border border-white/60 transition-all active:scale-90 cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-
-            </div>
-
-            {/* COMBINED TRUST BAR DIRECTLY AT BOTTOM OF HERO CARD */}
-            <div className="border-t border-borderDefault bg-slate-50/70 px-4 sm:px-6 md:px-8 py-4 sm:py-5">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-orange-50 text-primary border border-orange-100/70 flex items-center justify-center shrink-0 shadow-2xs">
-                    <Truck className="w-5 h-5" strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-textStrong leading-tight">Express Delivery</h4>
-                    <p className="text-[11px] text-textMuted mt-0.5">Free over ₹499 • 24h dispatch</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100/70 flex items-center justify-center shrink-0 shadow-2xs">
-                    <HeartPulse className="w-5 h-5" strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-textStrong leading-tight">AI Health Scoring</h4>
-                    <p className="text-[11px] text-textMuted mt-0.5">Nutrient density grading</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100/70 flex items-center justify-center shrink-0 shadow-2xs">
-                    <BadgeCheck className="w-5 h-5" strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-textStrong leading-tight">Audited Vendors</h4>
-                    <p className="text-[11px] text-textMuted mt-0.5">FSSAI certified growers</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100/70 flex items-center justify-center shrink-0 shadow-2xs">
-                    <Leaf className="w-5 h-5" strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-textStrong leading-tight">100% Clean Foods</h4>
-                    <p className="text-[11px] text-textMuted mt-0.5">Zero artificial chemicals</p>
-                  </div>
-                </div>
-
               </div>
             </div>
 
@@ -496,10 +365,11 @@ export default function Home() {
           {/* SECTION TITLE */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-textStrong tracking-tight">
-                Organic Catalog &amp; Fresh Finds
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight">
+                <span className="text-slate-900">Organic Catalog &amp; </span>
+                <span className="text-primary">Fresh Finds</span>
               </h2>
-              <p className="text-xs sm:text-sm text-textDefault mt-1">
+              <p className="text-xs sm:text-sm text-textDefault mt-1.5">
                 Lab-screened, transparent whole foods delivered straight to your door
               </p>
             </div>
