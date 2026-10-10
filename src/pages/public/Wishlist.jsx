@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getWishlist, removeWishlist } from "../../services/wishlistService";
-import { updateCartItem } from "../../services/cartService";
+import { useCart } from "../../context/CartContext";
+import { useToast } from "../../context/ToastContext";
 
 export default function Wishlist(){
 
 const [items,setItems] = useState([]);
 const navigate = useNavigate();
+const { addToCart: cartAdd } = useCart();
+const { toast } = useToast();
 
 useEffect(()=>{
 
@@ -31,8 +34,10 @@ const removeItem = async(id)=>{
 try{
 await removeWishlist(id);
 setItems(prev=>prev.filter(i=>i.wishlist_id !== id));
+toast.info("Item removed from your wishlist.");
 }catch(err){
 console.log(err);
+toast.error("Failed to remove item from wishlist.");
 }
 };
 
@@ -41,9 +46,9 @@ console.log(err);
 const addToCart = async (item) => {
   try {
 
-    await updateCartItem(item.id, 1);
+    await cartAdd(item, 1);
 
-    alert("Item added to cart");
+    toast.success("Item moved to your cart!", "Added to Cart");
 
     await removeWishlist(item.wishlist_id);
 
@@ -53,6 +58,7 @@ const addToCart = async (item) => {
 
   } catch (err) {
     console.log(err);
+    toast.error("Failed to add item to cart.");
   }
 };
 
@@ -93,18 +99,34 @@ key={item.wishlist_id}
 className="border rounded-xl p-4 md:p-6 shadow flex flex-col"
 >
 
-<img
-src={item.image_url}
-className="h-28 md:h-40 object-contain mx-auto"
-/>
+<div className="relative">
+  {Number(item.discount_percent) > 0 && (
+    <span className="absolute top-0 left-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+      {item.discount_percent}% OFF
+    </span>
+  )}
+  <img
+  src={item.image_url}
+  className="h-28 md:h-40 object-contain mx-auto"
+  />
+</div>
 
 <h3 className="font-semibold mt-3 md:mt-4 text-sm md:text-base line-clamp-1">
 {item.title}
 </h3>
 
-<p className="text-primary font-bold text-sm md:text-base">
-₹{item.price}
-</p>
+<div className="flex items-center gap-2">
+  <span className="text-primary font-bold text-sm md:text-base">
+    ₹{Number(item.discount_percent) > 0
+      ? Math.round(Number(item.price) * (1 - Number(item.discount_percent) / 100))
+      : item.price}
+  </span>
+  {Number(item.discount_percent) > 0 && (
+    <span className="text-xs text-gray-400 line-through">
+      ₹{item.price}
+    </span>
+  )}
+</div>
 
 <div className="flex flex-col sm:flex-row gap-2 mt-3 md:mt-4">
 

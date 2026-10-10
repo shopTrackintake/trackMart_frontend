@@ -1,30 +1,22 @@
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import Footer from "../components/Footer";
 import { Outlet } from "react-router-dom";
 
 export default function VendorLayout() {
   return (
-    <div className="flex min-h-screen bg-bgApp">
-
-      {/* Sidebar */}
-      <Sidebar role="vendor" />
-
-      {/* Main Section */}
-      <div className="flex-1 flex flex-col md:ml-64">
-
-        {/* Navbar */}
-        <div className="sticky top-0 z-10 bg-bgApp">
-          <Navbar />
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 p-4 md:p-10">
-          <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 md:p-8">
-            <Outlet />
-          </div>
-        </div>
-
+    <div className="min-h-screen flex flex-col bg-slate-50/70">
+      {/* Sticky Top Navbar */}
+      <div className="sticky top-0 z-50">
+        <Navbar />
       </div>
+
+      {/* Main Content Area */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
+        <Outlet />
+      </main>
+
+      {/* Full Merchant Hub Footer */}
+      <Footer />
     </div>
   );
 }

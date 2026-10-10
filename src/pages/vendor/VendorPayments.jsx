@@ -1,241 +1,204 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import socket from "../../services/socket";
+import { 
+  IndianRupee, Wallet, CheckCircle2, Clock, 
+  Building2, Phone, MapPin, Hash, ArrowUpRight
+} from "lucide-react";
 
-export default function VendorPayments(){
+export default function VendorPayments() {
+  const [data, setData] = useState({
+    received: 0,
+    pending: 0,
+    history: []
+  });
 
-const [data,setData] = useState({
-received:0,
-pending:0,
-history:[]
-});
+  const [vendor, setVendor] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const [vendor,setVendor] = useState(null);
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const [payRes, userRes] = await Promise.allSettled([
+          api.get("/vendor/payments"),
+          api.get("/user/profile")
+        ]);
 
-useEffect(()=>{
+        if (payRes.status === "fulfilled" && payRes.value?.data) {
+          setData(payRes.value.data);
+        }
 
-const fetchPayments = async()=>{
-  
-
-try{
-
-const res = await api.get("/vendor/payments");
-setData(res.data);
-
-}catch(err){
-console.log(err);
-}
-
-};
-
-
-fetchPayments();
-
-
-},[]);
-  const netPending = (data.pending || 0) - (data.dues || 0);
-  const handlePayDues = async () => {
-  try {
-
-    // 🔥 create order
-    const { data: orderRes } = await api.post("/payment/create-order", {
-      amount: Math.abs(netPending),
-      type: "vendor_due"
-    });
-
-    const order = orderRes.order;
-
-    const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY_ID,  // ⚠️ replace
-      amount: order.amount,
-      currency: "INR",
-      order_id: order.id,
-      name: "TrackMart Vendor Dues",
-      description: "Clear your dues",
-
-      handler: async function (response) {
-
-        // 🔥 verify payment
-        await api.post("/payment/verify", {
-  razorpay_order_id: response.razorpay_order_id,
-  razorpay_payment_id: response.razorpay_payment_id,
-  razorpay_signature: response.razorpay_signature,
-  type: "vendor_due",
-  amount: Math.abs(netPending)   // 🔥 IMPORTANT
-});
-
-        alert("Dues cleared successfully");
-
-        // 🔥 refresh UI (simple way)
-        window.location.reload();
+        if (userRes.status === "fulfilled" && userRes.value?.data) {
+          setVendor(userRes.value.data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    fetchPayments();
 
-  } catch (err) {
-    console.log(err);
-  }
-};
+    const handleUpdate = () => {
+      fetchPayments();
+    };
 
-return(
+    socket.on("order_updated", handleUpdate);
+    socket.on("new_notification", handleUpdate);
 
-<div className="space-y-10">
+    return () => {
+      socket.off("order_updated", handleUpdate);
+      socket.off("new_notification", handleUpdate);
+    };
+  }, []);
 
-{/* PAGE TITLE */}
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      {/* 1. HEADER */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs">
+        <h1 className="text-2xl sm:text-3xl font-bold font-primary">
+          <span className="text-primary">Payouts</span>{" "}
+          <span className="text-slate-900">& Finances</span>
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">
+          Track received merchant earnings and pending weekly payout settlement cycles.
+        </p>
+      </div>
 
-<h1 className="text-3xl font-bold">
-My Earnings
-</h1>
-{/* 🔥 ADD THIS */}
-{netPending < 0 && (
-  <p className="text-red-500 font-medium">
-    ⚠ You have pending dues. Clear them to receive payouts.
-  </p>
-)}
+      {/* 2. STATS KPI CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Received */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Settled / Received Earnings
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4 text-2xl sm:text-3xl font-extrabold text-slate-900 font-primary">
+            {loading ? "..." : `₹${Number(data.received || 0).toLocaleString()}`}
+          </div>
+          <div className="mt-1.5 text-xs text-emerald-600 font-medium flex items-center gap-1">
+            <span>Successfully deposited to registered bank/UPI</span>
+          </div>
+        </div>
 
-{/* SUMMARY */}
+        {/* Pending */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Pending Settlement
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <Clock className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4 text-2xl sm:text-3xl font-extrabold text-slate-900 font-primary">
+            {loading ? "..." : `₹${Number(data.pending || 0).toLocaleString()}`}
+          </div>
+          <div className="mt-1.5 text-xs text-amber-600 font-medium">
+            <span>Scheduled for automated payout transfer</span>
+          </div>
+        </div>
+      </div>
 
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* 3. SETTLEMENT BANKING / UPI DETAILS */}
+      {vendor && (
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-3">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 font-primary">
+            Payout Settlement Details
+          </h2>
 
-<div className="bg-bgSurface border border-borderDefault rounded-xl p-6">
-<p className="text-textMuted">Received</p>
-<p className="text-2xl font-bold text-green-600">
-₹{data.received}
-</p>
-</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2">
+            <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+              <span className="text-slate-400 font-medium">Business Name</span>
+              <p className="font-bold text-slate-800 text-sm truncate">{vendor.business_name || "Merchant Store"}</p>
+            </div>
 
-<div className="bg-bgSurface border border-borderDefault rounded-xl p-6">
-<p className="text-textMuted">Pending</p>
-<p className="text-2xl font-bold text-yellow-600">
-₹{Math.max(0, netPending)}
-</p>
-</div>
+            <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+              <span className="text-slate-400 font-medium">Settlement UPI ID</span>
+              <p className="font-bold text-slate-800 text-sm truncate">{vendor.upi_id || "Not configured"}</p>
+            </div>
 
-{/* 🔥 ADD THIS HERE */}
-<div className="bg-bgSurface border border-borderDefault rounded-xl p-6">
-<p className="text-textMuted">Dues</p>
+            <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+              <span className="text-slate-400 font-medium">Registered Phone</span>
+              <p className="font-bold text-slate-800 text-sm truncate">{vendor.phone || "Not set"}</p>
+            </div>
 
-<p className="text-2xl font-bold text-red-600">
-₹{netPending < 0 ? Math.abs(netPending) : 0}
-</p>
+            <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+              <span className="text-slate-400 font-medium">Shop Location</span>
+              <p className="font-bold text-slate-800 text-sm truncate">{vendor.shop_address || "Not set"}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
-{/* 🔥 PAY DUES BUTTON */}
-{netPending < 0 && (
-  <button
-    onClick={handlePayDues}
-    className="mt-3 w-full bg-red-500 text-white py-2 rounded-lg"
-  >
-    Pay Dues
-  </button>
-)}
-</div>
+      {/* 4. TRANSACTION / PAYOUT HISTORY */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 font-primary">
+            Payout History
+          </h2>
+          <span className="text-xs text-slate-500">
+            {data.history?.length || 0} transactions
+          </span>
+        </div>
 
-</div>
-
-
-{/* SHOP DETAILS */}
-
-{vendor && (
-
-<div className="bg-bgSurface border border-borderDefault rounded-xl p-6 space-y-3">
-
-<h2 className="text-xl font-semibold">
-My Shop Details
-</h2>
-
-<p>
-<b>Business:</b> {vendor.business_name}
-</p>
-
-<p>
-<b>Phone:</b> {vendor.phone}
-</p>
-
-<p>
-<b>Address:</b> {vendor.shop_address}
-</p>
-
-<p>
-<b>UPI ID:</b> {vendor.upi_id}
-</p>
-
-</div>
-
-)}
-
-
-{/* PAYMENT HISTORY */}
-
-<div className="space-y-4">
-
-<h2 className="text-xl font-semibold">
-Payment History
-</h2>
-
-{data.history.length === 0 && (
-
-<p className="text-textMuted">
-No payments yet
-</p>
-
-)}
-
-{data.history.map((p,i)=>(
-
-<div
-key={i}
-className="bg-bgSurface border border-borderDefault rounded-xl p-6 flex justify-between items-center"
->
-
-<div>
-
-<p className="font-semibold">
-{p.product_title}
-</p>
-
-<p className="text-sm text-textMuted">
-{new Date(p.created_at).toLocaleDateString()}
-</p>
-
-</div>
-
-
-<div className="text-right">
-
-<p className="font-semibold">
-₹{p.vendor_earning}
-</p>
-
-<p
-className={`text-sm ${
-p.payout_status==="paid"
-? "text-green-600"
-: "text-yellow-600"
-}`}
->
-
-{p.payout_status==="paid"
-? "Paid"
-: "Pending"}
-
-</p>
-  {/* 🔥 ADD THIS HERE */}
-{p.payout_status==="paid" && p.payout_reference && (
-  <p className="text-xs text-textMuted">
-    Ref: {p.payout_reference}
-  </p>
-)}
-</div>
-
-</div>
-
-))}
-
-</div>
-
-</div>
-
-);
-
+        {loading ? (
+          <div className="py-12 text-center text-slate-400 text-sm">
+            Loading payout statements...
+          </div>
+        ) : !data.history || data.history.length === 0 ? (
+          <div className="py-10 text-center text-slate-500 text-sm">
+            No payout transactions recorded yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-xs font-semibold text-slate-500 border-b border-slate-100 pb-2">
+                  <th className="pb-3 px-2">Product Item</th>
+                  <th className="pb-3 px-2">Date</th>
+                  <th className="pb-3 px-2">Amount</th>
+                  <th className="pb-3 px-2">Status</th>
+                  <th className="pb-3 px-2 text-right">Reference ID</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {data.history.map((p, i) => (
+                  <tr key={i} className="hover:bg-slate-50/80 transition">
+                    <td className="py-3 px-2 font-medium text-slate-900 max-w-[200px] truncate">
+                      {p.product_title || "Product Item"}
+                    </td>
+                    <td className="py-3 px-2 text-slate-500 text-xs">
+                      {p.created_at ? new Date(p.created_at).toLocaleDateString() : "Recent"}
+                    </td>
+                    <td className="py-3 px-2 font-bold text-slate-900">
+                      ₹{p.vendor_earning || 0}
+                    </td>
+                    <td className="py-3 px-2">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        p.payout_status === "paid"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-amber-50 text-amber-700 border border-amber-200"
+                      }`}>
+                        {p.payout_status === "paid" ? "Paid" : "Pending"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2 text-right text-xs text-slate-400 font-mono">
+                      {p.payout_reference || "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
