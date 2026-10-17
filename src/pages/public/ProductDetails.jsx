@@ -146,15 +146,6 @@ export default function ProductDetails() {
     ? product.making_process.split("\n").map(s => s.trim()).filter(Boolean)
     : Array.isArray(product.making_process) ? product.making_process : [];
 
-  let categoryBenefits = [];
-  if (product.benefits) {
-    try {
-      categoryBenefits = typeof product.benefits === "string" ? JSON.parse(product.benefits) : product.benefits;
-      if (!Array.isArray(categoryBenefits)) categoryBenefits = [];
-    } catch {
-      categoryBenefits = [];
-    }
-  }
 
   const galleryImages = [
     product.image_url,
@@ -217,18 +208,7 @@ export default function ProductDetails() {
                 </span>
               )}
 
-              {/* HEALTH RATING BADGE */}
-              {product.health_rating && (
-                <span
-                  className={`absolute top-3 right-12 text-[11px] font-bold px-2.5 py-0.5 rounded-full z-10 border ${
-                    product.health_rating.toLowerCase().includes("healthy")
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-red-50 text-red-700 border-red-200"
-                  }`}
-                >
-                  {product.health_rating}
-                </span>
-              )}
+
 
               {/* WISHLIST BUTTON */}
               {role === "customer" && (
@@ -518,47 +498,117 @@ export default function ProductDetails() {
         </div>
       )}
 
-      {/* 4. HEALTH & NUTRITIONAL BENEFITS (FROM CATEGORY & PRODUCT) */}
-      {categoryBenefits.length > 0 && (
-        <div className="bg-white border border-borderDefault rounded-3xl p-6 sm:p-8 shadow-card space-y-5">
+      {/* 4. COMPLETE PRODUCT SPECIFICATIONS & VENDOR DISCLOSURES */}
+      <div className="bg-white border border-borderDefault rounded-3xl p-6 sm:p-8 shadow-card space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-borderDefault pb-4">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-textStrong tracking-tight flex items-center gap-2">
-              <Sparkles className="w-4.5 h-4.5 text-primary" />
-              <span>Verified Health &amp; Wellness Benefits</span>
+              <Package className="w-4.5 h-4.5 text-primary" />
+              <span>Product Specifications &amp; Vendor Disclosures</span>
             </h2>
-            <p className="text-xs text-textMuted mt-1">
-              Physiological and dietary benefits associated with {product.category_name || "this nutritional category"}
+            <p className="text-xs text-textMuted mt-0.5">
+              Verified details supplied directly by {product.business_name || "the seller"}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {categoryBenefits.map((benefit, i) => (
-              <div
-                key={i}
-                className="bg-bgApp border border-borderDefault rounded-2xl overflow-hidden p-3.5 flex flex-col justify-between hover:shadow-sm transition"
-              >
-                {benefit.image && (
-                  <div className="h-28 w-full rounded-xl overflow-hidden mb-3 bg-slate-100">
-                    <img
-                      src={benefit.image}
-                      alt={benefit.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-textStrong leading-snug">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-[11px] text-textDefault mt-1 leading-relaxed">
-                    {benefit.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          {product.ingredients_image_url && (
+            <button
+              type="button"
+              onClick={() => setShowLabelModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-primary/30 bg-orange-50/60 hover:bg-orange-50 text-primary text-xs font-bold transition active:scale-95 cursor-pointer self-start sm:self-auto"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>View Packaging Label</span>
+            </button>
+          )}
         </div>
-      )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+          {product.brand_name && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Brand</span>
+              <strong className="text-textStrong font-bold block mt-0.5">{product.brand_name}</strong>
+            </div>
+          )}
+
+          {product.category_name && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Category</span>
+              <strong className="text-textStrong font-bold block mt-0.5">{product.category_name}</strong>
+            </div>
+          )}
+
+          {product.care_type && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Care Category</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.care_type}</strong>
+            </div>
+          )}
+
+          {product.concern_type && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Target Benefit</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.concern_type}</strong>
+            </div>
+          )}
+
+          {product.dietary_type && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Dietary Standard</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.dietary_type}</strong>
+            </div>
+          )}
+
+          {product.flavour && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Flavour / Variant</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.flavour}</strong>
+            </div>
+          )}
+
+          {product.size && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Net Quantity</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.size}</strong>
+            </div>
+          )}
+
+          {product.net_weight && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Net Weight</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.net_weight}</strong>
+            </div>
+          )}
+
+          {product.serving_size && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Serving Size</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.serving_size}</strong>
+            </div>
+          )}
+
+          {product.servings_per_container && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Servings / Container</span>
+              <strong className="text-textStrong font-semibold block mt-0.5">{product.servings_per_container}</strong>
+            </div>
+          )}
+
+          {product.sku && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">SKU</span>
+              <strong className="text-textStrong font-mono font-bold block mt-0.5">{product.sku}</strong>
+            </div>
+          )}
+
+          {product.barcode && (
+            <div className="p-3 rounded-2xl bg-bgApp border border-borderDefault">
+              <span className="text-[11px] text-textMuted block font-medium">Barcode / EAN</span>
+              <strong className="text-textStrong font-mono font-bold block mt-0.5">{product.barcode}</strong>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* 5. ARTISAN MAKING PROCESS & DIRECTIONS FOR USE */}
       {(makingProcessList.length > 0 || howToUseList.length > 0) && (

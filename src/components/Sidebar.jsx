@@ -47,10 +47,10 @@ export default function Sidebar({ role }) {
         {/* CUSTOMER */}
         {role === "customer" && (
           <div className="space-y-2">
-            <NavLink to="/customer" onClick={()=>setIsOpen(false)}
+            <NavLink to="/buy" onClick={()=>setIsOpen(false)}
               className={({ isActive }) =>
                 `${baseLink} ${isActive ? activeLink : ""}`}>
-              Dashboard
+              Buy
             </NavLink>
 
             <NavLink to="/customer/orders" onClick={()=>setIsOpen(false)}
@@ -139,6 +139,12 @@ export default function Sidebar({ role }) {
               className={({ isActive }) =>
                 `${baseLink} ${isActive ? activeLink : ""}`}>
               Earnings & Payments
+            </NavLink>
+
+            <NavLink to="/vendor/support" onClick={()=>setIsOpen(false)}
+              className={({ isActive }) =>
+                `${baseLink} ${isActive ? activeLink : ""}`}>
+              Help & Support
             </NavLink>
           </div>
         )}

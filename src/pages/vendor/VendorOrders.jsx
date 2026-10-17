@@ -5,7 +5,7 @@ import TrackingModal from "../../components/TrackingModal";
 import { 
   ShoppingBag, Search, Clock, CheckCircle2, 
   AlertCircle, ChevronRight, Calendar, Truck,
-  Package, RefreshCw, ChevronLeft, TrendingUp, ArrowRight
+  Package, RefreshCw, ChevronLeft, TrendingUp, ArrowRight, Eye
 } from "lucide-react";
 
 import socket from "../../services/socket";
@@ -15,6 +15,8 @@ export default function VendorOrders() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [timeframeFilter, setTimeframeFilter] = useState("all"); // "all" | "recent" | "past"
+  const [sortBy, setSortBy] = useState("newest"); // "newest" | "oldest" | "highest" | "lowest"
   const [trackingItemId, setTrackingItemId] = useState(null);
 
   // Fixed default items per page
@@ -49,14 +51,14 @@ export default function VendorOrders() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, timeframeFilter, sortBy]);
 
   const getStatusBadge = (status) => {
     const s = String(status || "").toLowerCase();
     if (s === "delivered") {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Delivered
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Completed (Delivered)
         </span>
       );
     }
@@ -67,6 +69,13 @@ export default function VendorOrders() {
         </span>
       );
     }
+    if (s === "cancelled") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 shadow-2xs">
+          <AlertCircle className="w-3.5 h-3.5 text-red-600" /> Cancelled
+        </span>
+      );
+    }
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
         <Package className="w-3.5 h-3.5 text-amber-600" /> Pending Acceptance
@@ -74,9 +83,26 @@ export default function VendorOrders() {
     );
   };
 
+  const isRecent = (dateString, days = 30) => {
+    if (!dateString) return true;
+    const diff = (Date.now() - new Date(dateString).getTime()) / (1000 * 60 * 60 * 24);
+    return diff <= days;
+  };
+
+  const isPast = (dateString, status, days = 30) => {
+    if (String(status || "").toLowerCase() === "delivered") return true;
+    if (!dateString) return false;
+    const diff = (Date.now() - new Date(dateString).getTime()) / (1000 * 60 * 60 * 24);
+    return diff > days;
+  };
+
   const placedCount = orders.filter(o => ["placed", "pending"].includes(String(o.item_status || "").toLowerCase())).length;
   const inTransitCount = orders.filter(o => ["in_transit", "confirmed", "shipped"].includes(String(o.item_status || "").toLowerCase())).length;
   const deliveredCount = orders.filter(o => String(o.item_status || "").toLowerCase() === "delivered").length;
+  const cancelledCount = orders.filter(o => String(o.item_status || "").toLowerCase() === "cancelled").length;
+
+  const recentCount = orders.filter(o => isRecent(o.created_at)).length;
+  const pastCount = orders.filter(o => isPast(o.created_at, o.item_status)).length;
 
   const filteredOrders = orders.filter((o) => {
     const q = searchQuery.toLowerCase().trim();
@@ -86,12 +112,31 @@ export default function VendorOrders() {
       String(o.item_id || "").toLowerCase().includes(q) ||
       String(o.product_title || "").toLowerCase().includes(q);
 
-    const s = String(o.item_status || "").toLowerCase();
-    if (statusFilter === "placed") return matchesSearch && ["placed", "pending"].includes(s);
-    if (statusFilter === "in_transit") return matchesSearch && ["in_transit", "confirmed", "shipped"].includes(s);
-    if (statusFilter === "delivered") return matchesSearch && s === "delivered";
+    if (!matchesSearch) return false;
 
-    return matchesSearch;
+    // Timeframe filter
+    if (timeframeFilter === "recent" && !isRecent(o.created_at)) return false;
+    if (timeframeFilter === "past" && !isPast(o.created_at, o.item_status)) return false;
+
+    // Status filter
+    const s = String(o.item_status || "").toLowerCase();
+    if (statusFilter === "placed") return ["placed", "pending"].includes(s);
+    if (statusFilter === "in_transit") return ["in_transit", "confirmed", "shipped"].includes(s);
+    if (statusFilter === "delivered") return s === "delivered";
+    if (statusFilter === "cancelled") return s === "cancelled";
+
+    return true;
+  }).sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    const amountA = Number(a.vendor_earning || 0);
+    const amountB = Number(b.vendor_earning || 0);
+
+    if (sortBy === "newest") return dateB - dateA;
+    if (sortBy === "oldest") return dateA - dateB;
+    if (sortBy === "highest") return amountB - amountA;
+    if (sortBy === "lowest") return amountA - amountB;
+    return 0;
   });
 
   // Calculate pagination
@@ -130,14 +175,14 @@ export default function VendorOrders() {
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-1">
-            Manage order workflow: Order Placed → In Transit → Delivered (OTP Verified).
+            Manage order workflow: Order Placed → In Transit → Delivered (OTP Verified) with status &amp; lifecycle filters.
           </p>
         </div>
 
         <button
           onClick={fetchOrders}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold transition text-sm shrink-0 active:scale-95 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold transition text-sm shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-primary" : ""}`} />
           Refresh List
@@ -147,15 +192,15 @@ export default function VendorOrders() {
       {/* 2. KPI METRICS SUMMARY CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <button
-          onClick={() => setStatusFilter("all")}
-          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden ${
-            statusFilter === "all"
+          onClick={() => { setStatusFilter("all"); setTimeframeFilter("all"); }}
+          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden cursor-pointer ${
+            statusFilter === "all" && timeframeFilter === "all"
               ? "bg-slate-900 text-white border-slate-900 ring-2 ring-slate-900 ring-offset-2"
               : "bg-white border-slate-200 hover:border-slate-300 text-slate-800 hover:bg-slate-50/50"
           }`}
         >
           <span className={`block text-[11px] sm:text-xs uppercase tracking-wider font-bold ${
-            statusFilter === "all" ? "text-slate-300" : "text-slate-500"
+            statusFilter === "all" && timeframeFilter === "all" ? "text-slate-300" : "text-slate-500"
           }`}>
             Total Orders
           </span>
@@ -166,8 +211,8 @@ export default function VendorOrders() {
         </button>
 
         <button
-          onClick={() => setStatusFilter("placed")}
-          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden ${
+          onClick={() => { setStatusFilter("placed"); }}
+          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden cursor-pointer ${
             statusFilter === "placed"
               ? "bg-amber-600 text-white border-amber-600 ring-2 ring-amber-600 ring-offset-2"
               : "bg-white border-slate-200 hover:border-amber-300 text-slate-800 hover:bg-amber-50/30"
@@ -189,8 +234,8 @@ export default function VendorOrders() {
         </button>
 
         <button
-          onClick={() => setStatusFilter("in_transit")}
-          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden ${
+          onClick={() => { setStatusFilter("in_transit"); }}
+          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden cursor-pointer ${
             statusFilter === "in_transit"
               ? "bg-blue-600 text-white border-blue-600 ring-2 ring-blue-600 ring-offset-2"
               : "bg-white border-slate-200 hover:border-blue-300 text-slate-800 hover:bg-blue-50/30"
@@ -212,8 +257,8 @@ export default function VendorOrders() {
         </button>
 
         <button
-          onClick={() => setStatusFilter("delivered")}
-          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden ${
+          onClick={() => { setStatusFilter("delivered"); }}
+          className={`p-4 sm:p-5 rounded-2xl border text-left transition shadow-2xs relative overflow-hidden cursor-pointer ${
             statusFilter === "delivered"
               ? "bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-600 ring-offset-2"
               : "bg-white border-slate-200 hover:border-emerald-300 text-slate-800 hover:bg-emerald-50/30"
@@ -222,7 +267,7 @@ export default function VendorOrders() {
           <span className={`block text-[11px] sm:text-xs uppercase tracking-wider font-bold ${
             statusFilter === "delivered" ? "text-emerald-100" : "text-emerald-600"
           }`}>
-            Delivered
+            Completed (Delivered)
           </span>
           <span className={`text-2xl sm:text-3xl font-extrabold font-primary block mt-1.5 ${
             statusFilter === "delivered" ? "text-white" : "text-emerald-700"
@@ -230,43 +275,96 @@ export default function VendorOrders() {
             {deliveredCount}
           </span>
           <div className={`text-[11px] mt-1 ${statusFilter === "delivered" ? "text-emerald-100" : "text-emerald-600/80"}`}>
-            OTP verified
+            OTP verified &amp; settled
           </div>
         </button>
       </div>
 
-      {/* 3. SEARCH & STATUS FILTERS */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search by Order #, Item ID or product name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition placeholder:text-slate-400 font-medium"
-          />
+      {/* 3. SEARCH & DUAL FILTERS (TIMEFRAME + STATUS + SORT) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
+        {/* Top Filter Bar: Search + Sort */}
+        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by Order #, Item ID or product name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-primary focus:bg-white transition placeholder:text-slate-400 font-medium"
+            />
+          </div>
+
+          {/* Timeframe Chips + Sort Dropdown */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+            {/* Timeframe Filter Pills */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
+              <button
+                type="button"
+                onClick={() => setTimeframeFilter("all")}
+                className={`px-3 py-1 rounded-lg transition cursor-pointer ${
+                  timeframeFilter === "all" ? "bg-white text-slate-900 shadow-2xs" : "hover:text-slate-900"
+                }`}
+              >
+                All Time
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeframeFilter("recent")}
+                className={`px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 ${
+                  timeframeFilter === "recent" ? "bg-white text-primary shadow-2xs" : "hover:text-slate-900"
+                }`}
+              >
+                <span>Recent</span>
+                <span className="text-[10px] opacity-75">({recentCount})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeframeFilter("past")}
+                className={`px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 ${
+                  timeframeFilter === "past" ? "bg-white text-slate-900 shadow-2xs" : "hover:text-slate-900"
+                }`}
+              >
+                <span>Past</span>
+                <span className="text-[10px] opacity-75">({pastCount})</span>
+              </button>
+            </div>
+
+            {/* Sort Selector */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-primary cursor-pointer shrink-0"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="highest">Payout: High to Low</option>
+              <option value="lowest">Payout: Low to High</option>
+            </select>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        {/* Bottom Filter Bar: Status Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 pt-1 border-t border-slate-100">
           {[
-            { id: "all", label: "All Orders", count: orders.length },
-            { id: "placed", label: "Order Placed", count: placedCount },
+            { id: "all", label: "All Statuses", count: orders.length },
+            { id: "placed", label: "Pending Acceptance", count: placedCount },
             { id: "in_transit", label: "In Transit", count: inTransitCount },
-            { id: "delivered", label: "Delivered", count: deliveredCount }
+            { id: "delivered", label: "Completed (Delivered)", count: deliveredCount },
+            { id: "cancelled", label: "Cancelled", count: cancelledCount }
           ].map((f) => (
             <button
               key={f.id}
               onClick={() => setStatusFilter(f.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
                 statusFilter === f.id
                   ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/70"
               }`}
             >
               <span>{f.label}</span>
               <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                statusFilter === f.id ? "bg-slate-800 text-slate-200" : "bg-white text-slate-600"
+                statusFilter === f.id ? "bg-slate-800 text-slate-200" : "bg-white text-slate-600 border border-slate-200"
               }`}>
                 {f.count}
               </span>
@@ -406,11 +504,12 @@ export default function VendorOrders() {
                     ) : <div className="hidden sm:block" />}
 
                     <Link
-                      to={`/vendor/orders/${order.order_id}`}
-                      className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-2xs active:scale-95 text-center"
+                      to={`/vendor/orders/${order.order_id}${order.item_id ? `?itemId=${order.item_id}` : ""}`}
+                      className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-2xs active:scale-95 text-center cursor-pointer"
                     >
-                      <span>Update Status</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View Detail &amp; Update</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
                     </Link>
                   </div>
                 </div>

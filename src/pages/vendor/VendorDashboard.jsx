@@ -398,10 +398,11 @@ export default function VendorDashboard() {
                       </td>
                       <td className="py-3.5 px-2 text-right">
                         <Link
-                          to={`/vendor/orders/${order.order_id}`}
-                          className="text-xs font-semibold text-primary hover:underline"
+                          to={`/vendor/orders/${order.order_id}${order.item_id ? `?itemId=${order.item_id}` : ""}`}
+                          className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1"
                         >
-                          Details
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View Detail &amp; Update</span>
                         </Link>
                       </td>
                     </tr>

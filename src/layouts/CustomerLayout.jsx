@@ -1,41 +1,22 @@
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 export default function CustomerLayout() {
-  const location = useLocation();
-  const isCart = location.pathname.includes("/cart");
-
   return (
-    <div className="flex min-h-screen bg-bgApp">
-
-      {/* Sidebar */}
-      <Sidebar role="customer" />
+    <div className="min-h-screen flex flex-col bg-bgApp">
+      {/* Sticky Navbar (Single unified navigation) */}
+      <div className="sticky top-0 z-50">
+        <Navbar />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col md:ml-64">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <Outlet />
+      </main>
 
-        {/* Navbar */}
-        <div className="sticky top-0 z-10">
-          <Navbar />
-        </div>
-
-        {/* Page Content */}
-        <div className="flex-1 p-4 md:p-8">
-          {isCart ? (
-            <Outlet />
-          ) : (
-            <div className="bg-bgSurface border border-borderDefault rounded-2xl shadow-card p-4 md:p-8 min-h-[60vh]">
-              <Outlet />
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <Footer />
-
-      </div>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

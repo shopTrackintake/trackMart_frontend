@@ -81,7 +81,7 @@ export default function NotificationBell() {
       } else if (role === "admin") {
         navigate(`/admin/orders?orderId=${n.order_id}`);
       } else {
-        navigate(`/customer/orders?orderId=${n.order_id}`);
+        navigate(`/customer/orders/${n.order_id}`);
       }
     } else {
       // Role-based default fallback
