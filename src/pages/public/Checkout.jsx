@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import MapPicker from "../../components/MapPicker";
+import { 
+  ArrowLeft, MapPin, CheckCircle2, Plus, Edit2, Trash2, 
+  Navigation, Check, ShieldCheck, ShoppingBag, CreditCard,
+  Loader2, AlertCircle, Sparkles
+} from "lucide-react";
 import {
   getAddresses,
   addAddress,
@@ -10,447 +13,159 @@ import {
 } from "../../services/addressService";
 import api from "../../services/api";
 
-export default function Checkout(){
+export default function Checkout() {
+  const navigate = useNavigate();
+  const paymentRef = useRef(null);
 
-const paymentRef = useRef(null);
-const formRef = useRef(null);
-const navigate = useNavigate();
-const [locationConfirmed, setLocationConfirmed] = useState(false);
-const [addresses,setAddresses] = useState([]);
-const [selected,setSelected] = useState(null);
-const [editingId,setEditingId] = useState(null);
-const [showMap, setShowMap] = useState(false);
-const [paymentMethod,setPaymentMethod] = useState("ONLINE");
-const [placing,setPlacing] = useState(false);
-const [showOverview,setShowOverview] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [loadingCart, setLoadingCart] = useState(true);
 
-const [cartItems,setCartItems] = useState([]);
-const [totalAmount,setTotalAmount] = useState(0);
+  // Address selection & mode
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addressMode, setAddressMode] = useState("saved"); // "saved" | "new"
+  const [editingId, setEditingId] = useState(null);
 
-const [form,setForm] = useState({
- full_name:"",
- phone:"",
- house_no:"",
- street:"",
- locality:"",
- landmark:"",
- city:"",
- state:"",
- pincode:"",
- latitude:"",
- longitude:""
-});
-useEffect(() => {
-  const script = document.createElement("script");
-  script.src = "https://checkout.razorpay.com/v1/checkout.js";
-  script.async = true;
-  document.body.appendChild(script);
-}, []);
-/* FETCH ADDRESSES */
-const fetchAddresses = async()=>{
- try{
-  const res = await getAddresses();
-  setAddresses(res.data);
- }catch(err){
-  console.log(err);
- }
-};
+  // New / Edit address form state
+  const [form, setForm] = useState({
+    full_name: "",
+    phone: "",
+    house_no: "",
+    street: "",
+    locality: "",
+    landmark: "",
+    city: "",
+    state: "",
+    pincode: "",
+    latitude: "",
+    longitude: ""
+  });
 
-/* FETCH CART */
-useEffect(()=>{
- const fetchCart = async()=>{
-  try{
-   const res = await api.get("/cart");
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationSuccessMsg, setLocationSuccessMsg] = useState("");
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [placing, setPlacing] = useState(false);
 
-   const validItems = res.data.filter(
-    item=>Number(item.quantity)>0
-   );
+  // Load Razorpay Script
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
-   setCartItems(validItems);
+  // Fetch Addresses
+  const fetchAddresses = async () => {
+    try {
+      const res = await getAddresses();
+      const list = Array.isArray(res.data) ? res.data : [];
+      setAddresses(list);
 
-   const total = validItems.reduce(
-    (acc,item)=>acc + Number(item.price)*Number(item.quantity),
-    0
-   );
-
-   setTotalAmount(total);
-
-  }catch(err){
-   console.log(err);
-  }
- };
-
- fetchCart();
- fetchAddresses();
-},[]);
-
-/* PLACE ORDER */
-  const placeOrder = async () => {
-    if (!selected) {
-      alert("Please select delivery address first.");
-      return;
+      // Auto-select first address if none selected
+      if (list.length > 0) {
+        setSelectedAddressId((prev) => prev || list[0].id);
+        setAddressMode("saved");
+      } else {
+        setAddressMode("new");
+      }
+    } catch (err) {
+      console.error("Fetch addresses error:", err);
     }
-    await handleRazorpay();
   };
 
-  /* RAZORPAY HANDLER */
-  const handleRazorpay = async () => {
-  try {
-    setPlacing(true);
+  // Fetch Cart Items
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        setLoadingCart(true);
+        const res = await api.get("/cart");
+        const validItems = (res.data || []).filter(
+          (item) => Number(item.quantity) > 0
+        );
 
-    // ✅ STEP 1: Create DB Order FIRST
-    const orderRes = await api.post("/orders", {
-      address_id: selected,
-      payment_method: "ONLINE"
-    });
+        setCartItems(validItems);
 
-    const dbOrderId = orderRes.data.order_id;
-
-    // ✅ STEP 2: Create Razorpay Order
-    const res = await api.post("/payment/create-order", {
-      amount: totalAmount
-    });
-
-    const { order } = res.data;
-
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: "INR",
-      name: "HealthMart",
-      order_id: order.id,
-handler: async function (response) {
-  try {
-
-    console.log("RAZORPAY RESPONSE:", response);
-
-    const verifyRes = await api.post("/payment/verify", {
-      razorpay_order_id: response.razorpay_order_id,
-      razorpay_payment_id: response.razorpay_payment_id,
-      razorpay_signature: response.razorpay_signature
-    });
-
-    console.log("VERIFY RESPONSE:", verifyRes.data); // ✅ ADD
-
-    if (verifyRes.data.success) {
-
-      console.log("DB ORDER ID:", dbOrderId); // ✅ ADD
-
-      await api.patch("/orders/payment-status", {
-        order_id: dbOrderId,
-        payment_id: response.razorpay_payment_id
-      });
-
-      console.log("PAYMENT STATUS UPDATED"); // ✅ ADD
-
-      alert("Payment successful!");
-      window.location.href = "/customer/orders";
-
-    } else {
-      alert("Payment verification failed");
-    }
-
-  } catch (err) {
-    console.log("VERIFY ERROR:", err.response?.data); // ✅ ADD
-    alert("Verification error");
-  }
-},
-
-      modal: {
-        ondismiss: () => {
-          setPlacing(false);
-        }
+        const total = validItems.reduce(
+          (acc, item) => acc + Number(item.price) * Number(item.quantity),
+          0
+        );
+        setTotalAmount(total);
+      } catch (err) {
+        console.error("Fetch cart error:", err);
+      } finally {
+        setLoadingCart(false);
       }
     };
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    fetchCart();
+    fetchAddresses();
+  }, []);
 
-  } catch (err) {
-    console.log(err);
-    alert("Payment failed to start");
-  } finally {
-    setPlacing(false);
-  }
-};
-
-/* SAVE / UPDATE ADDRESS */
-const handleAdd = async()=>{
- try{
-
-  if(
-   !form.full_name ||
-   !form.phone ||
-   !form.house_no ||
-   !form.street ||
-   !form.locality ||
-   !form.city ||
-   !form.state ||
-   !form.pincode
-  ){
-   alert("Please fill all required fields");
-   return;
-  }
-
-  if(editingId){
-   await updateAddress(editingId,form);
-   alert("Address updated");
-   setEditingId(null);
-  }else{
-   const latest = await getAddresses();
-   if(latest.data.length>=2){
-    alert("Maximum 2 addresses allowed");
-    return;
-   }
-   await addAddress(form);
-   alert("Address saved");
-  }
-
-  setForm({
-   full_name:"",
-   phone:"",
-   house_no:"",
-   street:"",
-   locality:"",
-   landmark:"",
-   city:"",
-   state:"",
-   pincode:"",
-   latitude:"",
-   longitude:""
-  });
-
-  fetchAddresses();
-
- }catch(err){
-  alert("Failed to save address");
- }
-};
-
-/* DELETE */
-const handleDelete = async(id)=>{
- await deleteAddress(id);
- fetchAddresses();
-};
-
-/* CONFIRM ORDER */
-const confirmOrder = async()=>{
- try{
-  setPlacing(true);
-
-  await api.post("/orders",{
-   address_id:selected,
-   payment_method:paymentMethod
-  });
-
-  alert("Order placed successfully!");
-  window.location.href="/customer/orders";
-
- }catch(err){
-  console.log(err);
-  alert("Failed to place order");
- }finally{
-  setPlacing(false);
- }
-};
-
-/* LOCATION */
-const getLiveLocation = ()=>{
- if(!navigator.geolocation){
-  alert("Geolocation not supported");
-  return;
- }
-navigator.geolocation.getCurrentPosition(
-  async (position) => {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-      );
-
-      const data = await res.json();
-      const addr = data.address || {};
-
-      setForm(prev => ({
-  ...prev,
-  house_no: addr.house_number || prev.house_no,
-  street: addr.road || prev.street,
-  locality: addr.suburb || addr.village || prev.locality,
-  city: addr.city || addr.town || prev.city,
-  state: addr.state || prev.state,
-  pincode: addr.postcode || prev.pincode,
-  latitude: lat,
-  longitude: lon
-}));
-
-      setLocationConfirmed(true);
-      setShowMap(true);
-
-    } catch (err) {
-      console.log(err);
-      alert("Failed to fetch address");
+  /* ================= 1. USE CURRENT LOCATION (GPS) ================= */
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
     }
-  },
-  (error) => {
-    alert("Please enable location permission");
-  }
-);
-  };  
-return(
 
-<div className="space-y-10">
+    setDetectingLocation(true);
+    setLocationSuccessMsg("");
 
-{/* BACK ARROW */}
-<button
- onClick={()=>navigate("/cart")}
-  className="absolute top-16 left-6 p-10 rounded-full hover:bg-gray-100 transition z-50"
->
- <ArrowLeft className="w-6 h-6 text-gray-700"/>
-</button>
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
 
-<h1 className="text-3xl font-bold">Checkout</h1>
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+          );
+          const data = await res.json();
+          const addr = data.address || {};
 
-{/* SAVED ADDRESSES */}
-<div className="space-y-4">
+          setForm((prev) => ({
+            ...prev,
+            house_no: addr.house_number || prev.house_no || "",
+            street: addr.road || addr.suburb || prev.street || "",
+            locality: addr.neighbourhood || addr.suburb || addr.village || prev.locality || "",
+            city: addr.city || addr.town || addr.county || prev.city || "",
+            state: addr.state || prev.state || "",
+            pincode: addr.postcode || prev.pincode || "",
+            latitude: lat,
+            longitude: lon
+          }));
 
-{addresses.map(addr=>(
+          setLocationSuccessMsg(
+            `GPS captured: Lat ${lat.toFixed(4)}, Lng ${lon.toFixed(4)}`
+          );
+        } catch (err) {
+          console.error("Reverse geocoding error:", err);
+          // Still store the coordinates even if reverse geocode fails
+          setForm((prev) => ({
+            ...prev,
+            latitude: lat,
+            longitude: lon
+          }));
+          setLocationSuccessMsg(
+            `Coordinates saved: Lat ${lat.toFixed(4)}, Lng ${lon.toFixed(4)}`
+          );
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      (error) => {
+        setDetectingLocation(false);
+        alert("Please enable location permissions in your browser to detect your current location.");
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
 
-<div
-key={addr.id}
-className={`p-6 border rounded-2xl ${
-selected===addr.id
-? "border-primary bg-primary/5"
-: "border-gray-200"
-}`}
->
+  /* ================= 2. SAVE OR UPDATE ADDRESS ================= */
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
 
-{/* CLICK AREA */}
-<div
-onClick={()=>{
-
- setSelected(addr.id);
-
- setTimeout(()=>{
-  paymentRef.current?.scrollIntoView({
-   behavior:"smooth"
-  });
- },200);
-
-}}
-className="cursor-pointer"
->
-
-<p className="font-semibold">{addr.full_name}</p>
-<p className="text-sm text-gray-500">{addr.phone}</p>
-
-<p>{addr.house_no}, {addr.street}</p>
-<p>{addr.locality}</p>
-<p>{addr.city}, {addr.state} - {addr.pincode}</p>
-
-</div>
-
-{/* EDIT + DELETE BUTTONS */}
-<div className="flex gap-3 mt-4">
-
-<button
-onClick={(e)=>{
- e.stopPropagation();
-
- setForm({
-  full_name:addr.full_name,
-  phone:addr.phone,
-  house_no:addr.house_no,
-  street:addr.street,
-  locality:addr.locality,
-  landmark:addr.landmark,
-  city:addr.city,
-  state:addr.state,
-  pincode:addr.pincode,
-  latitude:addr.latitude,
-  longitude:addr.longitude
- });
-
- setEditingId(addr.id);
- setShowMap(true);              // map open
- setLocationConfirmed(false);
- formRef.current?.scrollIntoView({behavior:"smooth"});
-}}
-className="text-sm px-4 py-1 border rounded-lg hover:bg-gray-100"
->
-Edit
-</button>
-
-<button
-onClick={(e)=>{
- e.stopPropagation();
- handleDelete(addr.id);
-}}
-className="text-sm px-4 py-1 border rounded-lg text-red-500 hover:bg-red-50"
->
-Delete
-</button>
-
-</div>
-
-</div>
-
-))}
-
-</div>
-
-{/* ADDRESS FORM */}
-<div ref={formRef} className="space-y-4 border p-6 rounded-2xl">
-
-<h2 className="font-semibold text-lg">Add Delivery Address</h2>
-
-<input placeholder="Full Name" value={form.full_name}
-onChange={e=>setForm({...form,full_name:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="Phone" value={form.phone}
-onChange={e=>setForm({...form,phone:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="House No" value={form.house_no}
-onChange={e=>setForm({...form,house_no:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="Street" value={form.street}
-onChange={e=>setForm({...form,street:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="Locality" value={form.locality}
-onChange={e=>setForm({...form,locality:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="City" value={form.city}
-onChange={e=>setForm({...form,city:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="State" value={form.state}
-onChange={e=>setForm({...form,state:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<input placeholder="Pincode" value={form.pincode}
-onChange={e=>setForm({...form,pincode:e.target.value})}
-className="border p-2 w-full rounded-lg"/>
-
-<div className="flex gap-4">
-<button
-  onClick={() => {
-    setShowMap(true);          // 🔥 ALWAYS OPEN
-    setLocationConfirmed(false);
-  }}
- className="w-full h-11 border rounded-xl flex items-center justify-center"
->
-  📍 Pick from Map
-</button>
-<button
-  onClick={() => {
-
-    // ✅ validation
     if (
       !form.full_name ||
       !form.phone ||
@@ -461,125 +176,685 @@ className="border p-2 w-full rounded-lg"/>
       !form.state ||
       !form.pincode
     ) {
-      alert("Please fill all fields");
+      alert("Please fill all required address fields.");
       return;
     }
 
-    // 🔥 ALWAYS REQUIRE MAP CLICK (IMPORTANT)
-    if (!locationConfirmed) {
-      alert("Please select location on map first");
+    try {
+      setSavingAddress(true);
 
-      setShowMap(true);   // map open
+      if (editingId) {
+        await updateAddress(editingId, form);
+        alert("Address updated successfully!");
+        setEditingId(null);
+      } else {
+        const res = await addAddress(form);
+        if (res.data?.id) {
+          setSelectedAddressId(res.data.id);
+        }
+        alert("Address saved successfully!");
+      }
+
+      // Reset form
+      setForm({
+        full_name: "",
+        phone: "",
+        house_no: "",
+        street: "",
+        locality: "",
+        landmark: "",
+        city: "",
+        state: "",
+        pincode: "",
+        latitude: "",
+        longitude: ""
+      });
+      setLocationSuccessMsg("");
+
+      await fetchAddresses();
+      setAddressMode("saved");
+
+    } catch (err) {
+      console.error("Save address error:", err);
+      alert(err.response?.data?.message || "Failed to save address. Please check all fields.");
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  /* ================= 3. EDIT & DELETE ACTIONS ================= */
+  const handleEdit = (addr) => {
+    setForm({
+      full_name: addr.full_name || "",
+      phone: addr.phone || "",
+      house_no: addr.house_no || "",
+      street: addr.street || "",
+      locality: addr.locality || "",
+      landmark: addr.landmark || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      pincode: addr.pincode || "",
+      latitude: addr.latitude || "",
+      longitude: addr.longitude || ""
+    });
+    setEditingId(addr.id);
+    setAddressMode("new");
+    if (addr.latitude && addr.longitude) {
+      setLocationSuccessMsg(`Current coordinates: ${Number(addr.latitude).toFixed(4)}, ${Number(addr.longitude).toFixed(4)}`);
+    } else {
+      setLocationSuccessMsg("");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this address?")) return;
+    try {
+      await deleteAddress(id);
+      if (selectedAddressId === id) {
+        setSelectedAddressId(null);
+      }
+      fetchAddresses();
+    } catch {
+      alert("Failed to delete address.");
+    }
+  };
+
+  /* ================= 4. RAZORPAY PAYMENT & ORDER PLACEMENT ================= */
+  const handlePlaceOrder = async () => {
+    if (!selectedAddressId) {
+      alert("Please select a delivery address to proceed.");
       return;
     }
 
-    // ✅ FINAL UPDATE
-    handleAdd();
+    if (cartItems.length === 0) {
+      alert("Your cart is empty. Please add items to proceed.");
+      navigate("/buy");
+      return;
+    }
 
-  }}
-  className="w-full h-11 bg-primary text-white rounded-xl flex items-center justify-center"
->
-  {editingId ? "Update Address" : "Save Address"}
-</button> 
-<button
-  onClick={getLiveLocation}
- className="w-full h-11 border rounded-xl flex items-center justify-center"
->
-  Use Live Location
-</button>
+    try {
+      setPlacing(true);
 
-</div>
-{showMap && (
-  <div className="mt-4 border p-4 rounded-xl">
+      // 1. Create DB Order First
+      const orderRes = await api.post("/orders", {
+        address_id: selectedAddressId,
+        payment_method: "ONLINE"
+      });
 
-    <p className="text-sm text-gray-500 mb-2">
-      📍 Click on map to confirm location
-    </p>
+      const dbOrderId = orderRes.data.order_id;
 
-  <MapPicker 
-  setForm={setForm}
-  setLocationConfirmed={setLocationConfirmed}
-  setShowMap={setShowMap}   // 🔥 MUST
-  lat={form.latitude}
-  lng={form.longitude}
-/>
+      // 2. Create Razorpay Payment Order
+      const res = await api.post("/payment/create-order", {
+        amount: totalAmount
+      });
 
-     
+      const { order } = res.data;
 
-  </div>
-)}
-</div>
+      // 3. Launch Razorpay Modal
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "TrackMart",
+        description: "Fresh Groceries Order Payment",
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await api.post("/payment/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
 
-{/* PAYMENT */}
-<div ref={paymentRef} className="border border-slate-200 bg-white p-6 rounded-2xl space-y-4 shadow-xs">
+            if (verifyRes.data.success) {
+              await api.patch("/orders/payment-status", {
+                order_id: dbOrderId,
+                payment_id: response.razorpay_payment_id
+              });
 
-<div className="flex items-center justify-between">
-  <h2 className="font-bold text-lg text-slate-900">Payment Method</h2>
-  <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full uppercase tracking-wider">
-    100% Secured Online Payment
-  </span>
-</div>
+              alert("Order placed & payment verified successfully!");
+              window.location.href = "/customer/orders";
+            } else {
+              alert("Payment verification failed. Please contact support.");
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+            alert("Payment verification failed.");
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setPlacing(false);
+          }
+        }
+      };
 
-<div className="p-4 border border-emerald-200 bg-emerald-50/60 rounded-xl flex items-center justify-between">
-  <div className="flex items-center gap-3">
-    <div className="w-5 h-5 rounded-full border-2 border-emerald-600 bg-emerald-600 flex items-center justify-center">
-      <div className="w-2 h-2 rounded-full bg-white"></div>
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      console.error("Order error:", err);
+      alert(err.response?.data?.message || "Failed to initiate payment. Please try again.");
+    } finally {
+      setPlacing(false);
+    }
+  };
+
+  const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fadeIn pb-16">
+
+      {/* TOP HEADER */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => navigate("/customer/cart")}
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-primary transition group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Shopping Cart</span>
+        </button>
+
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          Step 2 of 2: Checkout
+        </span>
+      </div>
+
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xs">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <span className="text-slate-900">Delivery & </span>
+          <span className="text-primary">Checkout</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          Select or fill your delivery address, then proceed with instant online payment.
+        </p>
+      </div>
+
+      {/* ================= STEP 1: CLEAR ADDRESS OPTION SWITCHER ================= */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        
+        {/* SECTION HEADER & DUAL-OPTION SWITCHER */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="space-y-0.5">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-primary" />
+              <span>1. Delivery Address</span>
+            </h2>
+            <p className="text-xs text-slate-500">
+              Choose an existing address or enter a new one.
+            </p>
+          </div>
+
+          {/* CLEAR DUAL OPTIONS TABS */}
+          <div className="flex items-center p-1 bg-slate-100 rounded-2xl self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => {
+                setAddressMode("saved");
+                setEditingId(null);
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                addressMode === "saved"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <span>Choose Saved Address</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700">
+                {addresses.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setAddressMode("new");
+                setEditingId(null);
+                setForm({
+                  full_name: "",
+                  phone: "",
+                  house_no: "",
+                  street: "",
+                  locality: "",
+                  landmark: "",
+                  city: "",
+                  state: "",
+                  pincode: "",
+                  latitude: "",
+                  longitude: ""
+                });
+                setLocationSuccessMsg("");
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                addressMode === "new"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Fill New Address</span>
+            </button>
+          </div>
+        </div>
+
+        {/* --- OPTION A: CHOOSE SAVED ADDRESS --- */}
+        {addressMode === "saved" && (
+          <div className="space-y-4">
+            {addresses.length === 0 ? (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                <MapPin className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-sm font-bold text-slate-700">No saved addresses found</p>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Please add your delivery address to proceed with this order.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setAddressMode("new")}
+                  className="px-4 py-2 rounded-xl bg-primary text-white font-bold text-xs hover:bg-orange-600 transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Fill New Address</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {addresses.map((addr) => {
+                  const isSelected = selectedAddressId === addr.id;
+
+                  return (
+                    <div
+                      key={addr.id}
+                      onClick={() => setSelectedAddressId(addr.id)}
+                      className={`p-5 rounded-2xl border-2 transition cursor-pointer relative space-y-3 flex flex-col justify-between ${
+                        isSelected
+                          ? "border-primary bg-orange-50/20 shadow-xs ring-2 ring-primary/10"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50"
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        {/* Radio selection & Label */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? "border-primary bg-primary text-white"
+                                  : "border-slate-300 bg-white"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            </div>
+                            <span className="font-bold text-slate-900 text-sm">
+                              {addr.full_name}
+                            </span>
+                          </div>
+
+                          {isSelected && (
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-primary text-white">
+                              Selected
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Phone */}
+                        <p className="text-xs text-slate-500 font-medium pl-7">
+                          📞 {addr.phone}
+                        </p>
+
+                        {/* Complete Address */}
+                        <div className="text-xs text-slate-600 leading-relaxed pl-7 pt-1">
+                          <p>{addr.house_no}, {addr.street}</p>
+                          {addr.locality && <p>{addr.locality}</p>}
+                          <p>{addr.city}, {addr.state} - <strong className="text-slate-900 font-mono font-bold">{addr.pincode}</strong></p>
+                          
+                          {/* Coordinates Badge */}
+                          {addr.latitude && addr.longitude && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-2 border border-emerald-100 font-semibold font-mono">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>GPS Coordinates: {Number(addr.latitude).toFixed(4)}, {Number(addr.longitude).toFixed(4)}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-100 pl-7">
+                        <span className="text-[11px] font-bold text-primary">
+                          {isSelected ? "Deliver to this address" : "Click to select"}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(addr);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-primary rounded-lg transition"
+                            title="Edit Address"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(addr.id);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition"
+                            title="Delete Address"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* --- OPTION B: FILL NEW ADDRESS (NO MAP BLOCKER) --- */}
+        {addressMode === "new" && (
+          <form onSubmit={handleSaveAddress} className="space-y-5">
+            
+            {/* GPS LOCATION AUTODETECT BANNER */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-orange-50/80 to-amber-50/80 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Navigation className="w-4 h-4 text-primary" />
+                  <span>Quick Fill via GPS</span>
+                </p>
+                <p className="text-xs text-slate-600">
+                  Detect your current latitude & longitude and autofill address details automatically.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={detectingLocation}
+                className="px-4 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto shrink-0 disabled:opacity-50"
+              >
+                {detectingLocation ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Detecting Location...</span>
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-3.5 h-3.5" />
+                    <span>Use Current Location</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* GPS SUCCESS CONFIRMATION BADGE */}
+            {locationSuccessMsg && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{locationSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* ADDRESS FORM FIELDS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Full Name *</label>
+                <input
+                  type="text"
+                  value={form.full_name}
+                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  placeholder="Receiver's Name"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Phone Number *</label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="10-digit mobile number"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Flat / House / Building No *</label>
+                <input
+                  type="text"
+                  value={form.house_no}
+                  onChange={(e) => setForm({ ...form, house_no: e.target.value })}
+                  placeholder="Flat 102, Building A"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Street / Road / Area *</label>
+                <input
+                  type="text"
+                  value={form.street}
+                  onChange={(e) => setForm({ ...form, street: e.target.value })}
+                  placeholder="Main Market Road"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Locality / Colony *</label>
+                <input
+                  type="text"
+                  value={form.locality}
+                  onChange={(e) => setForm({ ...form, locality: e.target.value })}
+                  placeholder="Sector or Colony name"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Landmark (Optional)</label>
+                <input
+                  type="text"
+                  value={form.landmark}
+                  onChange={(e) => setForm({ ...form, landmark: e.target.value })}
+                  placeholder="Near park, temple, etc."
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">City *</label>
+                <input
+                  type="text"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  placeholder="City"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">State *</label>
+                <input
+                  type="text"
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
+                  placeholder="State"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">Pincode *</label>
+                <input
+                  type="text"
+                  value={form.pincode}
+                  onChange={(e) => setForm({ ...form, pincode: e.target.value })}
+                  placeholder="6-digit Pincode"
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:bg-white transition font-mono"
+                />
+              </div>
+
+              {/* Coordinates display if captured */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase">GPS Coordinates</label>
+                <input
+                  type="text"
+                  value={form.latitude && form.longitude ? `${Number(form.latitude).toFixed(4)}, ${Number(form.longitude).toFixed(4)}` : "Auto-detected on GPS click"}
+                  disabled
+                  className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono text-slate-500 cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {/* FORM ACTION BUTTONS */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={savingAddress}
+                className="px-6 py-3 rounded-xl bg-primary hover:bg-orange-600 text-white font-bold text-xs sm:text-sm transition shadow-xs disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
+              >
+                {savingAddress ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving Address...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>{editingId ? "Update & Select Address" : "Save & Select Address"}</span>
+                  </>
+                )}
+              </button>
+
+              {addresses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddressMode("saved");
+                    setEditingId(null);
+                  }}
+                  className="px-4 py-3 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+
+          </form>
+        )}
+
+      </div>
+
+      {/* ================= STEP 2: ORDER SUMMARY & PAYMENT ================= */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="border-b border-slate-100 pb-4">
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5 text-primary" />
+            <span>2. Order Summary & Payment</span>
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Review items in your bag and finalize your order with instant Razorpay checkout.
+          </p>
+        </div>
+
+        {/* ITEMS LIST */}
+        <div className="divide-y divide-slate-100">
+          {cartItems.map((item) => (
+            <div key={item.id} className="py-3 flex items-center justify-between text-xs sm:text-sm">
+              <div className="space-y-0.5 min-w-0 pr-4">
+                <p className="font-bold text-slate-900 truncate">{item.title}</p>
+                <p className="text-xs text-slate-500">
+                  Qty: <strong className="text-slate-800">{item.quantity}</strong> × ₹{item.price}
+                </p>
+              </div>
+              <span className="font-black font-mono text-slate-900 shrink-0">
+                ₹{Number(item.price) * Number(item.quantity)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* PRICE BREAKDOWN */}
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs">
+          <div className="flex justify-between text-slate-600">
+            <span>Items Subtotal</span>
+            <span className="font-mono font-bold">₹{totalAmount}</span>
+          </div>
+          <div className="flex justify-between text-slate-600">
+            <span>Standard Express Delivery</span>
+            <span className="text-emerald-700 font-bold uppercase">Free</span>
+          </div>
+          <div className="border-t border-slate-200/80 pt-2 flex justify-between text-sm sm:text-base font-black text-slate-900">
+            <span>Total Payable Amount</span>
+            <span className="text-primary font-mono font-black">₹{totalAmount}</span>
+          </div>
+        </div>
+
+        {/* SELECTED DELIVERY DESTINATION CALLOUT */}
+        {selectedAddress && (
+          <div className="p-3.5 rounded-2xl bg-orange-50/70 border border-orange-200/80 text-xs text-slate-700 flex items-start gap-2.5">
+            <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-slate-900">
+                Delivering to: {selectedAddress.full_name} ({selectedAddress.phone})
+              </p>
+              <p className="text-slate-600 text-[11px] mt-0.5">
+                {selectedAddress.house_no}, {selectedAddress.street}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.pincode}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* PAYMENT BADGE & CTA */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>100% Secured Payment via Razorpay (UPI, Google Pay, Cards, NetBanking)</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handlePlaceOrder}
+            disabled={placing || !selectedAddressId || cartItems.length === 0}
+            className="w-full py-4 rounded-2xl bg-primary hover:bg-orange-600 text-white font-extrabold text-sm sm:text-base transition shadow-md shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+          >
+            {placing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Processing Order...</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-5 h-5" />
+                <span>Pay ₹{totalAmount} & Confirm Order</span>
+              </>
+            )}
+          </button>
+
+          {!selectedAddressId && (
+            <p className="text-xs text-center text-red-600 font-semibold">
+              Please select or save a delivery address above to enable payment.
+            </p>
+          )}
+        </div>
+
+      </div>
+
     </div>
-    <div>
-      <p className="font-bold text-slate-900 text-sm">Online Payment (Razorpay)</p>
-      <p className="text-xs text-slate-500">UPI, Credit/Debit Cards, NetBanking, Wallets</p>
-    </div>
-  </div>
-  <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-md">Instant Pay</span>
-</div>
-
-<button
-  onClick={placeOrder}
-  disabled={placing}
-  className="bg-primary hover:bg-primaryHover text-white text-base font-bold py-3.5 rounded-xl w-full shadow-md transition active:scale-95 disabled:opacity-50"
->
-  {placing ? "Processing Payment..." : `Pay ₹${totalAmount} & Place Order`}
-</button>
-
-</div>
-
-{/* OVERVIEW */}
-{showOverview && (
-<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-<div className="bg-white p-8 rounded-2xl w-[600px]">
-
-<h2 className="text-xl font-bold mb-4">Order Overview</h2>
-
-{cartItems.map(item=>(
-<div key={item.id} className="flex justify-between border-b py-2">
-<p>{item.title} (x{item.quantity})</p>
-<p>₹{Number(item.price)*Number(item.quantity)}</p>
-</div>
-))}
-
-<div className="flex justify-between font-bold mt-4">
-<p>Total</p>
-<p>₹{totalAmount}</p>
-</div>
-
-<div className="flex gap-4 mt-6">
-<button
-onClick={()=>setShowOverview(false)}
-className="border px-6 py-2 rounded-xl">
-Back
-</button>
-
-<button
-onClick={confirmOrder}
-className="bg-primary text-white px-6 py-2 rounded-xl">
-Confirm Order
-</button>
-</div>
-
-</div>
-</div>
-)}
-
-</div>
-);
+  );
 }

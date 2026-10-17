@@ -57,7 +57,7 @@ export default function Login() {
         } else if (cartCount > 0) {
           navigate("/cart");
         } else {
-          navigate("/customer");
+          navigate("/buy");
         }
       }
     } catch (err) {

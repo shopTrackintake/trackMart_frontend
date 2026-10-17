@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useContext } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { getProducts } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
 import { getWishlist, toggleWishlist } from "../../services/wishlistService";
@@ -694,19 +694,7 @@ export default function Home() {
                           </span>
                         )}
 
-                        {/* HEALTH RATING BADGE */}
-                        {product.health_rating && (
-                          <span
-                            className={`absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-lg text-[10px] font-bold shadow-xs backdrop-blur-xs flex items-center gap-1 z-10 ${
-                              product.health_rating.toLowerCase().includes("healthy")
-                                ? "bg-emerald-600/90 text-white"
-                                : "bg-amber-600/90 text-white"
-                            }`}
-                          >
-                            <Leaf className="w-2.5 h-2.5 fill-white text-white" />
-                            <span>{product.health_rating}</span>
-                          </span>
-                        )}
+
 
                         {/* PRODUCT IMAGE WITH FALLBACK */}
                         <img

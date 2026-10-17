@@ -271,53 +271,106 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* 2. FOR BUYERS */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
-              For Buyers
-            </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
-              <li>
-                <Link to="/" className="text-slate-600 hover:text-primary transition block py-0.5">
-                  Shop Products
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" className="text-slate-600 hover:text-primary transition block py-0.5">
-                  Buyer Login
-                </Link>
-              </li>
-              <li>
-                <Link to="/register" className="text-slate-600 hover:text-primary transition block py-0.5">
-                  Create Account
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* 2. FOR CUSTOMERS / BUYERS */}
+          {role === "customer" ? (
+            <>
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+                  Shop Groceries
+                </h4>
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  <li>
+                    <Link to="/buy" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Buy Products
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/customer/orders" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      My Orders
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/customer/cart" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Shopping Cart
+                    </Link>
+                  </li>
+                </ul>
+              </div>
 
-          {/* 3. FOR SELLERS */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
-              For Sellers
-            </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
-              <li>
-                <Link to="/apply-vendor" className="text-primary font-semibold hover:underline block py-0.5">
-                  Become a Seller
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" className="text-slate-600 hover:text-primary transition block py-0.5">
-                  Vendor Login
-                </Link>
-              </li>
-            </ul>
-          </div>
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+                  Customer Care
+                </h4>
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  <li>
+                    <Link to="/support" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Customer Support
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/profile" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Account Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Contact Office
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* 2. FOR GUESTS / PUBLIC BUYERS */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+                  For Buyers
+                </h4>
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  <li>
+                    <Link to="/" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Shop Products
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/login" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Buyer Login
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/register" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Create Account
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 3. FOR SELLERS */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
+                  For Sellers
+                </h4>
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  <li>
+                    <Link to="/apply-vendor" className="text-primary font-semibold hover:underline block py-0.5">
+                      Become a Seller
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/login" className="text-slate-600 hover:text-primary transition block py-0.5">
+                      Vendor Login
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          )}
 
           {/* 4. SUPPORT & HELP */}
           <div className="space-y-3">
             <h4 className="font-bold text-slate-900 text-xs sm:text-sm uppercase tracking-wider">
-              Support & Help
+              Legal & Policies
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>

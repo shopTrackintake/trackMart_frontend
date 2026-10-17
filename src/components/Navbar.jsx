@@ -103,7 +103,7 @@ export default function Navbar() {
           {/* 1. LEFT: BRAND LOGO */}
           <div className="flex items-center">
             <Link
-              to="/"
+              to={role === "customer" ? "/buy" : role === "vendor" ? "/vendor" : role === "admin" ? "/admin" : "/"}
               className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 transition hover:opacity-90"
               onClick={() => setIsOpen(false)}
             >
@@ -168,30 +168,15 @@ export default function Navbar() {
             {role === "customer" && (
               <div className="flex items-center gap-1">
                 <Link
-                  to="/"
-                  className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition ${
-                    location.pathname === "/"
-                      ? "bg-primary text-white shadow-xs"
-                      : "text-slate-600 hover:text-primary hover:bg-orange-50/60"
-                  }`}
-                >
-                  Shop
-                </Link>
-                <Link
-                  to="/customer/wishlist"
+                  to="/buy"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition ${
-                    isLinkActive("/customer/wishlist")
+                    location.pathname === "/buy" || location.pathname.startsWith("/buy")
                       ? "bg-primary text-white shadow-xs"
                       : "text-slate-600 hover:text-primary hover:bg-orange-50/60"
                   }`}
                 >
-                  <Heart className="w-4 h-4 text-red-500 fill-red-500/20" />
-                  <span>Wishlist</span>
-                  {wishlistCount > 0 && (
-                    <span className="bg-red-500 text-white text-[11px] px-1.5 py-0.2 rounded-full font-bold">
-                      {wishlistCount}
-                    </span>
-                  )}
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Buy</span>
                 </Link>
                 <Link
                   to="/customer/orders"
@@ -203,6 +188,17 @@ export default function Navbar() {
                 >
                   <Package className="w-4 h-4" />
                   <span>My Orders</span>
+                </Link>
+                <Link
+                  to="/profile"
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition ${
+                    location.pathname === "/profile"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-slate-600 hover:text-primary hover:bg-orange-50/60"
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
                 </Link>
                 <Link
                   to="/support"
@@ -266,6 +262,17 @@ export default function Navbar() {
                 >
                   <Wallet className="w-4 h-4" />
                   <span>Payouts</span>
+                </Link>
+                <Link
+                  to="/vendor/support"
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition ${
+                    isLinkActive("/vendor/support")
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-slate-600 hover:text-primary hover:bg-orange-50/60"
+                  }`}
+                >
+                  <Headphones className="w-4 h-4" />
+                  <span>Support</span>
                 </Link>
               </div>
             )}
@@ -384,18 +391,20 @@ export default function Navbar() {
 
                 <NotificationBell />
 
-                <Link
-                  to={role === "vendor" ? "/vendor/profile" : "/profile"}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition ${
-                    location.pathname === "/profile" || location.pathname === "/vendor/profile"
-                      ? "bg-slate-100 text-primary"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                  title="My Profile"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Profile</span>
-                </Link>
+                {role !== "customer" && (
+                  <Link
+                    to={role === "vendor" ? "/vendor/profile" : "/profile"}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition ${
+                      location.pathname === "/profile" || location.pathname === "/vendor/profile"
+                        ? "bg-slate-100 text-primary"
+                        : "text-slate-700 hover:bg-slate-100"
+                    }`}
+                    title="My Profile"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                  </Link>
+                )}
 
                 <button
                   onClick={handleLogout}
@@ -657,28 +666,49 @@ export default function Navbar() {
                 {role === "customer" && (
                   <>
                     <div className="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      Shopping & Activity
+                      Buyer Menu
                     </div>
 
                     <Link
-                      to="/"
+                      to="/buy"
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center justify-between p-3 rounded-xl transition ${
-                        location.pathname === "/"
+                        location.pathname === "/buy" || location.pathname.startsWith("/buy")
                           ? "bg-primary text-white font-semibold shadow-xs"
                           : "text-slate-700 hover:bg-slate-50"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Store className="w-5 h-5 shrink-0" />
+                        <ShoppingBag className="w-5 h-5 shrink-0" />
                         <div>
-                          <p className="text-sm font-semibold">Shop Products</p>
-                          <p className={`text-xs ${location.pathname === "/" ? "text-white/80" : "text-slate-400"}`}>
-                            Browse store catalog
+                          <p className="text-sm font-semibold">Buy Products</p>
+                          <p className={`text-xs ${location.pathname === "/buy" ? "text-white/80" : "text-slate-400"}`}>
+                            Explore grocery catalog & buy
                           </p>
                         </div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 ${location.pathname === "/" ? "text-white" : "text-slate-400"}`} />
+                      <ChevronRight className={`w-4 h-4 ${location.pathname === "/buy" ? "text-white" : "text-slate-400"}`} />
+                    </Link>
+
+                    <Link
+                      to="/customer/orders"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center justify-between p-3 rounded-xl transition ${
+                        isLinkActive("/customer/orders")
+                          ? "bg-primary text-white font-semibold shadow-xs"
+                          : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Package className="w-5 h-5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold">My Orders</p>
+                          <p className={`text-xs ${isLinkActive("/customer/orders") ? "text-white/80" : "text-slate-400"}`}>
+                            Track deliveries and order history
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 ${isLinkActive("/customer/orders") ? "text-white" : "text-slate-400"}`} />
                     </Link>
 
                     <Link
@@ -706,54 +736,6 @@ export default function Navbar() {
                       ) : (
                         <ChevronRight className={`w-4 h-4 ${isLinkActive("/customer/cart") ? "text-white" : "text-slate-400"}`} />
                       )}
-                    </Link>
-
-                    <Link
-                      to="/customer/wishlist"
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center justify-between p-3 rounded-xl transition ${
-                        isLinkActive("/customer/wishlist")
-                          ? "bg-primary text-white font-semibold shadow-xs"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Heart className="w-5 h-5 text-red-500 fill-red-500/20 shrink-0" />
-                        <div>
-                          <p className="text-sm font-semibold">My Wishlist</p>
-                          <p className={`text-xs ${isLinkActive("/customer/wishlist") ? "text-white/80" : "text-slate-400"}`}>
-                            Your saved favorite products
-                          </p>
-                        </div>
-                      </div>
-                      {wishlistCount > 0 ? (
-                        <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                          {wishlistCount}
-                        </span>
-                      ) : (
-                        <ChevronRight className={`w-4 h-4 ${isLinkActive("/customer/wishlist") ? "text-white" : "text-slate-400"}`} />
-                      )}
-                    </Link>
-
-                    <Link
-                      to="/customer/orders"
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center justify-between p-3 rounded-xl transition ${
-                        isLinkActive("/customer/orders")
-                          ? "bg-primary text-white font-semibold shadow-xs"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Package className="w-5 h-5 shrink-0" />
-                        <div>
-                          <p className="text-sm font-semibold">My Orders</p>
-                          <p className={`text-xs ${isLinkActive("/customer/orders") ? "text-white/80" : "text-slate-400"}`}>
-                            Track deliveries and order history
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className={`w-4 h-4 ${isLinkActive("/customer/orders") ? "text-white" : "text-slate-400"}`} />
                     </Link>
 
                     <div className="pt-2">
@@ -948,6 +930,27 @@ export default function Navbar() {
                         </div>
                       </div>
                       <ChevronRight className={`w-4 h-4 ${location.pathname === "/vendor/profile" ? "text-white" : "text-slate-400"}`} />
+                    </Link>
+
+                    <Link
+                      to="/vendor/support"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center justify-between p-3 rounded-xl transition ${
+                        location.pathname === "/vendor/support"
+                          ? "bg-primary text-white font-semibold shadow-xs"
+                          : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Headphones className="w-5 h-5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold">Vendor Support</p>
+                          <p className={`text-xs ${location.pathname === "/vendor/support" ? "text-white/80" : "text-slate-400"}`}>
+                            Payout, catalog & order assistance
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 ${location.pathname === "/vendor/support" ? "text-white" : "text-slate-400"}`} />
                     </Link>
 
                     <div className="pt-3 mt-2 border-t border-slate-100">

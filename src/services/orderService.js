@@ -5,6 +5,11 @@ export const getUserOrders = () => {
   return api.get("/orders");
 };
 
+/* GET SINGLE ORDER BY ID */
+export const getOrderDetails = (orderId) => {
+  return api.get(`/orders/${orderId}`);
+};
+
 /* GUEST ORDER */
 export const placeGuestOrder = (data) => {
   return api.post("/orders/guest", data);

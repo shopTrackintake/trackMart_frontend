@@ -280,27 +280,36 @@ export default function VendorProducts() {
                       {isOutOfStock ? "Out of Stock" : `Stock: ${p.stock}`}
                     </span>
 
-                    <img
-                      src={
-                        p.image_url?.startsWith("http")
-                          ? p.image_url
-                          : `http://localhost:5000/uploads/${p.image_url}`
-                      }
-                      alt={p.title}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
-                      }}
-                      className={`max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200 ${
-                        isInactive ? "grayscale-30 opacity-75" : ""
-                      }`}
-                    />
+                    <div 
+                      onClick={() => navigate(`/vendor/products/${p.id}`)}
+                      className="w-full h-full flex items-center justify-center cursor-pointer"
+                    >
+                      <img
+                        src={
+                          p.image_url?.startsWith("http")
+                            ? p.image_url
+                            : `http://localhost:5000/uploads/${p.image_url}`
+                        }
+                        alt={p.title}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
+                        }}
+                        className={`max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200 ${
+                          isInactive ? "grayscale-30 opacity-75" : ""
+                        }`}
+                      />
+                    </div>
                   </div>
 
                   {/* Content */}
                   <div className="p-4 flex flex-col flex-1 justify-between space-y-3">
                     <div className="space-y-1">
-                      <h3 className="font-bold text-slate-900 text-sm sm:text-base line-clamp-1 group-hover:text-primary transition-colors" title={p.title}>
+                      <h3 
+                        onClick={() => navigate(`/vendor/products/${p.id}`)}
+                        className="font-bold text-slate-900 text-sm sm:text-base line-clamp-1 hover:text-primary transition-colors cursor-pointer" 
+                        title={p.title}
+                      >
                         {p.title}
                       </h3>
                       <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
@@ -337,23 +346,32 @@ export default function VendorProducts() {
                       )}
                     </div>
 
-                    {/* Actions Row 1: Edit & Delete */}
+                    {/* Actions: View Details, Edit, Delete, Toggle */}
                     <div className="pt-2 border-t border-slate-100 space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          onClick={() => navigate(`/vendor/products/${p.id}`)}
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-800 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition shadow-2xs cursor-pointer"
+                          title="View Product Details"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-primary" />
+                          <span>View</span>
+                        </button>
+
                         <button
                           onClick={() => navigate(`/vendor/edit-product/${p.id}`)}
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-primary text-slate-700 hover:text-primary text-xs font-semibold transition"
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-primary text-slate-700 hover:text-primary text-xs font-semibold transition cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
-                          Edit
+                          <span>Edit</span>
                         </button>
 
                         <button
                           onClick={() => deleteProduct(p.id, p.title)}
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-red-300 text-slate-600 hover:text-red-600 hover:bg-red-50 text-xs font-semibold transition"
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-red-300 text-slate-600 hover:text-red-600 hover:bg-red-50 text-xs font-semibold transition cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          Delete
+                          <span>Delete</span>
                         </button>
                       </div>
 
