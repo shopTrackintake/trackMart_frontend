@@ -6,7 +6,7 @@ import {
   Tag, IndianRupee, Percent, Layers, ShieldCheck, 
   ExternalLink, Calendar, Building, Sparkles, AlertCircle,
   CheckCircle2, Flame, Scale, Clock, HeartPulse, FileText,
-  Barcode, Check
+  Barcode, Check, Copy
 } from "lucide-react";
 
 export default function VendorProductDetails() {
