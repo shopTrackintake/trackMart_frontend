@@ -391,11 +391,11 @@ export default function Navbar() {
 
                 <NotificationBell />
 
-                {role !== "customer" && (
+                {role === "vendor" && (
                   <Link
-                    to={role === "vendor" ? "/vendor/profile" : "/profile"}
+                    to="/vendor/profile"
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition ${
-                      location.pathname === "/profile" || location.pathname === "/vendor/profile"
+                      location.pathname === "/vendor/profile"
                         ? "bg-slate-100 text-primary"
                         : "text-slate-700 hover:bg-slate-100"
                     }`}
@@ -1119,26 +1119,6 @@ export default function Navbar() {
                       <ChevronRight className={`w-4 h-4 ${location.pathname === "/admin/support" ? "text-white" : "text-slate-400"}`} />
                     </Link>
 
-                    <Link
-                      to="/profile"
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center justify-between p-3 rounded-xl transition ${
-                        location.pathname === "/profile"
-                          ? "bg-primary text-white font-semibold shadow-xs"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <User className="w-5 h-5 shrink-0" />
-                        <div>
-                          <p className="text-sm font-semibold">Admin Profile</p>
-                          <p className={`text-xs ${location.pathname === "/profile" ? "text-white/80" : "text-slate-400"}`}>
-                            Account credentials
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className={`w-4 h-4 ${location.pathname === "/profile" ? "text-white" : "text-slate-400"}`} />
-                    </Link>
 
                     <div className="pt-3 mt-2 border-t border-slate-100">
                       <button
