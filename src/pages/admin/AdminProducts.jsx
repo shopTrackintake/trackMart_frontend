@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, Fragment } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { 
@@ -536,7 +536,7 @@ export default function AdminProducts() {
                   const showEllipsis = prevPage && page - prevPage > 1;
 
                   return (
-                    <React.Fragment key={page}>
+                    <Fragment key={page}>
                       {showEllipsis && (
                         <span className="px-2 text-slate-400 text-xs">...</span>
                       )}
@@ -551,7 +551,7 @@ export default function AdminProducts() {
                       >
                         {page}
                       </button>
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })}
 
