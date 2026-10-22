@@ -33,6 +33,7 @@ import Cart from "./pages/public/Cart";
 import Checkout from "./pages/public/Checkout";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminVendorDetails from "./pages/admin/AdminVendorDetails";
+import AdminSettings from "./pages/admin/AdminSettings";
 /* Customer Pages */
 import Orders from "./pages/customer/Orders";
 import CustomerOrderDetails from "./pages/customer/CustomerOrderDetails";
@@ -146,6 +147,8 @@ function App() {
           <Route path="orders" element={<AdminOrders/>}/>
           <Route path="vendors" element={<Vendors />} />
           <Route path="approve-vendors" element={<ApproveVendors />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
         </Route>
 
         {/* ================= FALLBACK ================= */}

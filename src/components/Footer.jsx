@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
 import { 
   Mail, Phone, ShieldCheck, ArrowRight, Zap, 
-  CheckCircle2, Instagram, Facebook, Twitter, Linkedin, Youtube 
+  CheckCircle2, Instagram, Facebook, Twitter, Linkedin, Youtube,
+  Activity, Database, Server, Lock, Store, Package, Wallet, Headphones
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -9,6 +10,190 @@ import { AuthContext } from "../context/AuthContext";
 export default function Footer() {
   const { role } = useContext(AuthContext);
   const currentYear = new Date().getFullYear();
+
+  // ================= ADMIN FOOTER (EXECUTIVE CONTROL HUB) =================
+  if (role === "admin") {
+    return (
+      <footer className="bg-gradient-to-b from-slate-900 to-slate-950 border-t border-slate-800 text-slate-400 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+
+            {/* 1. BRAND & PLATFORM TELEMETRY */}
+            <div className="space-y-4">
+              <Link to="/admin" className="text-2xl font-black tracking-tight flex items-center gap-2 group">
+                <span className="text-primary font-black">Track</span>
+                <span className="text-white font-black">Mart</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full ml-1">
+                  Admin Console
+                </span>
+              </Link>
+
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
+                Centralized platform governance, multi-vendor compliance monitoring, catalog moderation, and merchant settlement operations.
+              </p>
+
+              <div className="space-y-2 pt-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span>Core Services: Operational</span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 text-[11px] text-slate-400">
+                  <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 flex items-center gap-1">
+                    <Database className="w-3 h-3 text-cyan-400" /> PostgreSQL 16
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 flex items-center gap-1">
+                    <Server className="w-3 h-3 text-emerald-400" /> API Gateway
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-400" /> Razorpay
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. PLATFORM OVERSIGHT */}
+            <div className="space-y-4">
+              <h4 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary"></span>
+                Governance & Control
+              </h4>
+
+              <ul className="space-y-2.5 text-xs sm:text-sm font-medium">
+                <li>
+                  <Link to="/admin" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <span>Executive Dashboard</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin/approve-vendors" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <span>Seller Verification & Onboarding</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin/vendors" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <span>Merchant Directory</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin/products" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <span>Product Catalog Moderation</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin/orders" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <span>Order Lifecycle Monitor</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin/vendor-payments" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <span>Settlements & Dues</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* 3. SUPPORT & OPERATIONS */}
+            <div className="space-y-4">
+              <h4 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary"></span>
+                Operations Desk
+              </h4>
+
+              <div className="space-y-3 text-xs sm:text-sm text-slate-400">
+                <p className="leading-relaxed">
+                  Monitor buyer support escalations, merchant inquiries, order disputes, and customer satisfaction tickets.
+                </p>
+
+                <div className="pt-1">
+                  <Link 
+                    to="/admin/support" 
+                    className="inline-flex items-center gap-2 font-semibold text-xs text-primary bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 px-3.5 py-2 rounded-xl transition"
+                  >
+                    <Headphones className="w-3.5 h-3.5" />
+                    <span>Open Support Desk</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                <div className="pt-2 text-xs text-slate-500 space-y-1">
+                  <div>Platform Escalations: <span className="text-slate-300 font-medium">admin@trackmart.com</span></div>
+                  <div>Support Hotline: <span className="text-slate-300 font-medium">+91 (800) 123-4567</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. SECURITY & COMPLIANCE */}
+            <div className="space-y-4">
+              <h4 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary"></span>
+                Security & Protocols
+              </h4>
+
+              <ul className="space-y-2 text-xs sm:text-sm">
+                <li className="flex items-start gap-2 text-slate-300">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>Role-Based Access Control (RBAC Level 1)</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Lock className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>256-Bit SSL/TLS Encryption</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Database className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>Automated Snapshot Backups</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>Escrow Settlement Auditing</span>
+                </li>
+              </ul>
+
+              <div className="pt-2 flex flex-wrap gap-2 text-xs text-slate-400">
+                <Link to="/terms" className="hover:text-primary transition underline underline-offset-2">Platform Terms</Link>
+                <span>•</span>
+                <Link to="/privacy" className="hover:text-primary transition underline underline-offset-2">Privacy Policy</Link>
+                <span>•</span>
+                <Link to="/shipping" className="hover:text-primary transition underline underline-offset-2">Delivery SLA</Link>
+              </div>
+            </div>
+
+          </div>
+
+          {/* BOTTOM COPYRIGHT & AUDIT TELEMETRY BAR */}
+          <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <p className="text-center md:text-left">
+              © {currentYear} <span className="font-bold text-white">TrackMart Inc.</span> Platform Governance Console. Authorized personnel only.
+            </p>
+            
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-slate-400 text-[11px]">
+              <span className="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1 rounded-md border border-slate-700/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Env: Production (ap-south-1)
+              </span>
+              <span className="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1 rounded-md border border-slate-700/60">
+                <Activity className="w-3 h-3 text-cyan-400" />
+                Audit Logs: Active
+              </span>
+              <span className="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1 rounded-md border border-slate-700/60">
+                <Lock className="w-3 h-3 text-amber-400" />
+                Session: Admin Authenticated
+              </span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   // VENDOR FOOTER (SPACIOUS, MODERN & PROFESSIONAL)
   if (role === "vendor") {

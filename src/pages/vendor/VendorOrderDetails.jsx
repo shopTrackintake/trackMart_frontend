@@ -20,6 +20,7 @@ export default function VendorOrderDetails() {
   const [order, setOrder] = useState(null);
   const [items, setItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(urlItemId || null);
+  const [activeCommissionRate, setActiveCommissionRate] = useState(null);
 
   // Per-item input states
   const [itemDates, setItemDates] = useState({});
@@ -36,6 +37,9 @@ export default function VendorOrderDetails() {
       setOrder(res.data.order);
       const fetchedItems = res.data.items || [];
       setItems(fetchedItems);
+      if (res.data.commission_percent !== undefined && res.data.commission_percent !== null) {
+        setActiveCommissionRate(res.data.commission_percent);
+      }
 
       // If urlItemId was passed, make sure it's selected; otherwise default to first item if present
       if (urlItemId) {
@@ -260,17 +264,48 @@ export default function VendorOrderDetails() {
             </div>
           </div>
 
-          {/* Right: Vendor Net Payout */}
-          <div className="bg-emerald-50/70 border border-emerald-200/80 p-3.5 sm:px-5 sm:py-3 rounded-2xl flex sm:flex-col items-center sm:items-end justify-between shrink-0">
-            <div className="text-[11px] sm:text-xs text-emerald-800 font-semibold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Your Net Payout</span>
-            </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-emerald-950 font-primary">
-              ₹{Number(item.vendor_earning || item.price_at_purchase || 0).toLocaleString()}
-            </div>
-            <span className="text-[10px] text-emerald-700 hidden sm:inline-block">100% Sales Earning Settled</span>
-          </div>
+          {/* Right: Vendor Financial Breakdown */}
+          {(() => {
+            const subtotal = (Number(item.price_at_purchase || 0)) * (item.quantity || 1);
+            const fee = Number(item.commission_amount || 0);
+            const earning = Number(item.vendor_earning || (subtotal - fee));
+            const itemRate = subtotal > 0 && fee > 0 
+              ? ((fee / subtotal) * 100).toFixed(1).replace(/\.0$/, "") 
+              : (activeCommissionRate ?? 5);
+
+            return (
+              <div className="bg-emerald-50/70 border border-emerald-200/80 p-3.5 sm:px-5 sm:py-3 rounded-2xl flex flex-col justify-between shrink-0 min-w-[210px] space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-slate-600">
+                  <span className="text-[11px] font-medium">Item Subtotal:</span>
+                  <span className="font-semibold text-slate-900 font-mono">
+                    ₹{subtotal.toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between text-xs text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded-md font-medium">
+                  <span className="text-[11px] flex items-center gap-1 font-semibold">
+                    Platform Fee ({fee > 0 ? `${itemRate}%` : "0%"}):
+                  </span>
+                  <span className="font-bold font-mono">
+                    -₹{fee.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="pt-1.5 border-t border-emerald-200 flex items-center justify-between gap-3">
+                  <div className="text-[11px] sm:text-xs text-emerald-800 font-bold flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Net Payout:</span>
+                  </div>
+                  <div className="text-lg sm:text-xl font-extrabold text-emerald-950 font-primary">
+                    ₹{earning.toLocaleString()}
+                  </div>
+                </div>
+                <span className="text-[10px] text-emerald-700 text-right">
+                  {fee > 0 ? `${itemRate}% marketplace commission deducted` : "100% Sales Earning Settled"}
+                </span>
+              </div>
+            );
+          })()}
         </div>
 
         {/* STEPPER JOURNEY FOR THIS SPECIFIC ITEM */}
@@ -549,6 +584,40 @@ export default function VendorOrderDetails() {
             </span>
           </div>
         </div>
+
+        {/* ORDER FINANCIAL OVERVIEW */}
+        {(() => {
+          const totalGross = items.reduce((acc, it) => acc + (Number(it.price_at_purchase || 0) * (it.quantity || 1)), 0);
+          const totalPlatformFee = items.reduce((acc, it) => acc + Number(it.commission_amount || 0), 0);
+          const totalNetPayout = items.reduce((acc, it) => acc + Number(it.vendor_earning || ((Number(it.price_at_purchase || 0) * (it.quantity || 1)) - Number(it.commission_amount || 0))), 0);
+          const effectiveRate = totalGross > 0 && totalPlatformFee > 0 
+            ? ((totalPlatformFee / totalGross) * 100).toFixed(1).replace(/\.0$/, "") 
+            : (activeCommissionRate ?? 5);
+
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+              <div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Items Gross Value</span>
+                <span className="text-base font-extrabold text-slate-900 font-mono">₹{totalGross.toLocaleString()}</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5">Total retail sale price</span>
+              </div>
+              <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/70">
+                <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                  Platform Commission ({totalPlatformFee > 0 ? `${effectiveRate}%` : `${effectiveRate}% Rate`})
+                </span>
+                <span className="text-base font-extrabold text-amber-800 font-mono">-₹{totalPlatformFee.toLocaleString()}</span>
+                <span className="text-[10px] text-amber-700 block mt-0.5">
+                  {totalPlatformFee > 0 ? `Deducted by platform fee policy` : `Platform fee rate: ${effectiveRate}%`}
+                </span>
+              </div>
+              <div className="bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-200/70">
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Your Net Settlement</span>
+                <span className="text-base font-extrabold text-emerald-950 font-mono">₹{totalNetPayout.toLocaleString()}</span>
+                <span className="text-[10px] text-emerald-700 block mt-0.5">Credited to your payout balance</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* MULTI-ITEM TABS: If order has multiple items, let the vendor focus on one or view all */}
         {items.length > 1 && (

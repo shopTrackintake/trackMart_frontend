@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7549" />
+      <stop offset="100%" stop-color="#EA4A1A" />
+    </linearGradient>
+
+    <!-- Leaf Green Gradient -->
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="8" y="8" width="496" height="496" rx="104" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="6" />
+
+  <!-- Main Logo Group with Soft Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Motion / Track Lines (Left) -->
+    <line x1="72" y1="205" x2="128" y2="205" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="20" stroke-linecap="round" />
+    <line x1="48" y1="258" x2="114" y2="258" stroke="#FFFFFF" stroke-opacity="0.95" stroke-width="20" stroke-linecap="round" />
+    <line x1="78" y1="312" x2="132" y2="312" stroke="#FFFFFF" stroke-opacity="0.75" stroke-width="20" stroke-linecap="round" />
+
+    <!-- Fresh Harvest Leaf (Rising from Cart) -->
+    <path d="M 335 98 C 265 102 240 152 268 196 C 316 194 358 166 358 114 C 358 102 348 98 335 98 Z" fill="url(#leafGrad)" />
+    <path d="M 268 196 C 286 164 312 136 335 98" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="6" stroke-linecap="round" fill="none" />
+
+    <!-- Shopping Cart Basket -->
+    <path d="M 134 162 H 182 L 222 316 H 378 L 418 190 H 202" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="26" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <!-- Basket Mid-Rib -->
+    <line x1="208" y1="254" x2="394" y2="254" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" />
+
+    <!-- Basket Vertical Struts -->
+    <line x1="262" y1="194" x2="268" y2="312" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" />
+    <line x1="320" y1="194" x2="324" y2="312" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" />
+
+    <!-- Cart Wheels (Dual Ring Design) -->
+    <circle cx="236" cy="382" r="30" fill="#FFFFFF" />
+    <circle cx="236" cy="382" r="13" fill="#EA4A1A" />
+
+    <circle cx="358" cy="382" r="30" fill="#FFFFFF" />
+    <circle cx="358" cy="382" r="13" fill="#EA4A1A" />
+  </g>
+</svg>

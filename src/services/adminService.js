@@ -15,3 +15,15 @@ export const holdVendorById = (id) => {
 export const deleteVendorById = (id) => {
   return api.delete(`/admin/vendors/${id}`);
 };
+
+export const getAllVendors = (status = "all") => {
+  return api.get(`/admin/vendors?status=${status}`);
+};
+
+export const getVendorDetailsById = (id) => {
+  return api.get(`/admin/vendors/${id}`);
+};
+
+export const updateVendorStatusById = (id, status, reason = "") => {
+  return api.put(`/admin/vendors/${id}/status`, { status, reason });
+};
