@@ -34,7 +34,9 @@ import {
   X,
   Layers,
   ArrowRight,
-  Zap
+  Zap,
+  LayoutGrid,
+  List
 } from "lucide-react";
 
 export default function AdminOrders() {
@@ -42,6 +44,9 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+
+  // Layout View Mode: 'cards' (Responsive Grid) vs 'table' (Tabular View)
+  const [viewMode, setViewMode] = useState("cards");
 
   // Quick Tab state: 'all', 'today', 'in_transit', 'delivered', 'refunds', 'payouts'
   const [activeTab, setActiveTab] = useState("all");
@@ -523,23 +528,23 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* 1. TOP HEADER BANNER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-800 p-6 sm:p-8 text-white shadow-xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+      {/* 1. TOP HEADER BANNER (Clean Light Theme) */}
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-8 text-slate-900 shadow-sm">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-orange-100/50 blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold backdrop-blur-xs border border-white/10 text-slate-300">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-xs font-bold border border-emerald-200 text-emerald-800">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span>Live Order Pipeline Active</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Order Lifecycle &amp; Fulfillment Console
             </h1>
-            <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
+            <p className="text-slate-500 text-xs sm:text-sm max-w-2xl leading-relaxed">
               Real-time platform tracking across customer orders, OTP fulfillment verification, merchant payout settlements, and customer refund arbitration.
             </p>
           </div>
@@ -547,7 +552,7 @@ export default function AdminOrders() {
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <button
               onClick={handleExportCSV}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 border border-white/20 text-white text-xs font-semibold backdrop-blur-xs transition shadow-xs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
               title="Export currently filtered orders to CSV"
             >
               <Download className="w-4 h-4" />
@@ -557,7 +562,7 @@ export default function AdminOrders() {
             <button
               onClick={() => fetchOrders(true)}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-lg shadow-orange-500/20 active:scale-95"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-sm active:scale-95"
               title="Refresh order telemetry"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -565,93 +570,93 @@ export default function AdminOrders() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* 2. EXECUTIVE TELEMETRY KPI METRICS */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-6 mt-6 border-t border-slate-700/60 text-xs">
-          {/* Total Orders */}
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-            <div className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">
-              Total Orders
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-white mt-1">
-              {stats.totalOrders}
-            </div>
-            <div className="text-slate-400 text-[10px] mt-0.5">
-              GMV: ₹{stats.totalGMV.toLocaleString("en-IN")}
-            </div>
+      {/* 2. EXECUTIVE TELEMETRY KPI METRICS - RESPONSIVE STANDALONE CARDS */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 text-xs">
+        {/* Total Orders */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-slate-300 transition">
+          <div className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+            Total Orders
           </div>
-
-          {/* Today's Orders (Highlighted) */}
-          <div
-            onClick={() => setActiveTab("today")}
-            className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/40 backdrop-blur-xs cursor-pointer hover:border-amber-400 transition group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-amber-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-                <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
-                <span>Today's Orders</span>
-              </span>
-              <span className="text-[9px] bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.2 rounded-full">
-                TODAY
-              </span>
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-amber-300 mt-1 group-hover:scale-105 transition-transform">
-              {stats.todayOrdersCount}
-            </div>
-            <div className="text-amber-200/80 text-[10px] mt-0.5">
-              Today: ₹{stats.todayGMV.toLocaleString("en-IN")}
-            </div>
+          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            {stats.totalOrders}
           </div>
-
-          {/* In Transit */}
-          <div
-            onClick={() => setActiveTab("in_transit")}
-            className="p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs cursor-pointer hover:border-sky-400 transition"
-          >
-            <div className="text-sky-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-              <Truck className="w-3 h-3 text-sky-400" />
-              <span>In Transit</span>
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-sky-200 mt-1">
-              {stats.inTransitCount}
-            </div>
-            <div className="text-slate-400 text-[10px] mt-0.5">
-              Active on the road
-            </div>
+          <div className="text-slate-500 text-[11px] mt-0.5 font-medium">
+            GMV: ₹{stats.totalGMV.toLocaleString("en-IN")}
           </div>
+        </div>
 
-          {/* Delivered */}
-          <div
-            onClick={() => setActiveTab("delivered")}
-            className="p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs cursor-pointer hover:border-emerald-400 transition"
-          >
-            <div className="text-emerald-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-              <span>Delivered</span>
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-emerald-200 mt-1">
-              {stats.deliveredCount}
-            </div>
-            <div className="text-slate-400 text-[10px] mt-0.5">
-              Successfully fulfilled
-            </div>
+        {/* Today's Orders (Highlighted) */}
+        <div
+          onClick={() => setActiveTab("today")}
+          className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/60 border border-amber-200/90 shadow-xs cursor-pointer hover:border-amber-400 hover:shadow-sm transition group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-amber-800 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+              <span>Today's Orders</span>
+            </span>
+            <span className="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.5 rounded-full">
+              TODAY
+            </span>
           </div>
+          <div className="text-xl sm:text-2xl font-black text-amber-900 mt-1 group-hover:scale-105 transition-transform">
+            {stats.todayOrdersCount}
+          </div>
+          <div className="text-amber-700/90 text-[11px] mt-0.5 font-medium">
+            Today: ₹{stats.todayGMV.toLocaleString("en-IN")}
+          </div>
+        </div>
 
-          {/* Refunds & Disputes */}
-          <div
-            onClick={() => setActiveTab("refunds")}
-            className="p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs cursor-pointer hover:border-rose-400 transition col-span-2 sm:col-span-1"
-          >
-            <div className="text-rose-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3 text-rose-400" />
-              <span>Disputes / Refunds</span>
-            </div>
-            <div className="text-xl sm:text-2xl font-black text-rose-200 mt-1">
-              {stats.refundDisputeCount}
-            </div>
-            <div className="text-slate-400 text-[10px] mt-0.5">
-              Requires arbitration
-            </div>
+        {/* In Transit */}
+        <div
+          onClick={() => setActiveTab("in_transit")}
+          className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs cursor-pointer hover:border-sky-300 hover:shadow-sm transition group"
+        >
+          <div className="text-sky-700 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+            <Truck className="w-3.5 h-3.5 text-sky-600" />
+            <span>In Transit</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 group-hover:text-sky-600 transition-colors">
+            {stats.inTransitCount}
+          </div>
+          <div className="text-slate-500 text-[11px] mt-0.5 font-medium">
+            Active on the road
+          </div>
+        </div>
+
+        {/* Delivered */}
+        <div
+          onClick={() => setActiveTab("delivered")}
+          className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs cursor-pointer hover:border-emerald-300 hover:shadow-sm transition group"
+        >
+          <div className="text-emerald-700 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Delivered</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 group-hover:text-emerald-600 transition-colors">
+            {stats.deliveredCount}
+          </div>
+          <div className="text-slate-500 text-[11px] mt-0.5 font-medium">
+            Successfully fulfilled
+          </div>
+        </div>
+
+        {/* Refunds & Disputes */}
+        <div
+          onClick={() => setActiveTab("refunds")}
+          className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs cursor-pointer hover:border-rose-300 hover:shadow-sm transition col-span-2 sm:col-span-1 group"
+        >
+          <div className="text-rose-700 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+            <span>Disputes / Refunds</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 group-hover:text-rose-600 transition-colors">
+            {stats.refundDisputeCount}
+          </div>
+          <div className="text-slate-500 text-[11px] mt-0.5 font-medium">
+            Requires arbitration
           </div>
         </div>
       </div>
@@ -867,16 +872,48 @@ export default function AdminOrders() {
             </div>
           </div>
 
-          {/* Active Filter Clear Button */}
-          {hasActiveFilters && (
-            <button
-              onClick={clearAllFilters}
-              className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 hover:underline"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Clear All Filters</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2.5">
+            {/* Active Filter Clear Button */}
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 hover:underline"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Clear All Filters</span>
+              </button>
+            )}
+
+            {/* View Mode Toggle: Cards vs Table */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === "cards"
+                    ? "bg-white text-slate-900 shadow-2xs font-bold"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="Card Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-primary" />
+                <span>Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === "table"
+                    ? "bg-white text-slate-900 shadow-2xs font-bold"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="Table List View"
+              >
+                <List className="w-3.5 h-3.5 text-primary" />
+                <span>Table</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -907,221 +944,409 @@ export default function AdminOrders() {
           )}
         </div>
       ) : (
-        <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
-                <tr>
-                  <th className="px-5 py-3.5">Order &amp; Date</th>
-                  <th className="px-5 py-3.5">Customer</th>
-                  <th className="px-5 py-3.5">Item &amp; Merchant</th>
-                  <th className="px-5 py-3.5">Total &amp; Payment</th>
-                  <th className="px-5 py-3.5">Lifecycle Status</th>
-                  <th className="px-5 py-3.5">Vendor Payout</th>
-                  <th className="px-5 py-3.5">Refund</th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
+        <div className="space-y-4">
+          {/* A. CARDS VIEW (Responsive 1 to 3 columns, perfectly fitting mobile, tablet & desktop) */}
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+              {paginatedOrders.map((o) => {
+                const totalAmt = Number(o.price_at_purchase || 0) * Number(o.quantity || 1);
+                const orderDate = new Date(o.created_at);
+                const placedToday = isToday(o.created_at);
 
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {paginatedOrders.map((o) => {
-                  const totalAmt = Number(o.price_at_purchase || 0) * Number(o.quantity || 1);
-                  const orderDate = new Date(o.created_at);
-                  const placedToday = isToday(o.created_at);
+                return (
+                  <div
+                    key={`${o.order_id}-${o.item_id}`}
+                    onClick={() => setViewOrder(o)}
+                    className="bg-white rounded-2xl border border-slate-200/90 hover:border-primary/40 hover:shadow-md transition-all p-4 sm:p-5 flex flex-col justify-between cursor-pointer group relative overflow-hidden"
+                  >
+                    {/* Top Accent line on hover */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                  return (
-                    <tr
-                      key={`${o.order_id}-${o.item_id}`}
-                      className="hover:bg-slate-50/70 transition group"
-                    >
-                      {/* 1. ORDER & DATE */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-bold text-slate-900">
-                            #{String(o.order_id).slice(0, 8).toUpperCase()}
-                          </span>
-                          <button
-                            onClick={() => handleCopy(o.order_id, `order-${o.order_id}`)}
-                            className="text-slate-400 hover:text-primary transition p-0.5 rounded"
-                            title="Copy full UUID"
-                          >
-                            {copiedId === `order-${o.order_id}` ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 mt-1">
-                          {placedToday && (
-                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-400 text-slate-900 uppercase">
-                              Today
+                    <div>
+                      {/* 1. Header: Order ID & Lifecycle Badge */}
+                      <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-100">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-bold text-slate-900 text-sm">
+                              #{String(o.order_id).slice(0, 8).toUpperCase()}
                             </span>
-                          )}
-                          <span className="text-[11px] text-slate-400">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(o.order_id, `order-${o.order_id}`);
+                              }}
+                              className="text-slate-400 hover:text-primary transition p-0.5 rounded"
+                              title="Copy full UUID"
+                            >
+                              {copiedId === `order-${o.order_id}` ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                            {placedToday && (
+                              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-400 text-slate-900 uppercase">
+                                Today
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
                             {orderDate.toLocaleDateString("en-IN", {
                               day: "numeric",
-                              month: "short"
+                              month: "short",
+                              year: "numeric"
                             })}{" "}
                             •{" "}
                             {orderDate.toLocaleTimeString("en-IN", {
                               hour: "2-digit",
                               minute: "2-digit"
                             })}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* 2. CUSTOMER */}
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-slate-900">{o.buyer_name || "Customer"}</p>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[140px]" title={o.buyer_email}>
-                          {o.buyer_email || "N/A"}
-                        </p>
-                        {o.city && (
-                          <p className="text-[10px] text-slate-400 flex items-center gap-0.5 mt-0.5">
-                            <MapPin className="w-2.5 h-2.5" />
-                            <span>{o.city}{o.state ? `, ${o.state}` : ""}</span>
                           </p>
-                        )}
-                      </td>
+                        </div>
 
-                      {/* 3. ITEM & MERCHANT */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2.5 max-w-xs">
-                          {o.product_image ? (
-                            <img
-                              src={o.product_image}
-                              alt={o.product_name}
-                              className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0"
-                            />
+                        <div className="shrink-0 text-right">
+                          {getStatusBadge(o.order_status)}
+                        </div>
+                      </div>
+
+                      {/* 2. Item & Merchant Info */}
+                      <div className="flex items-center gap-3 py-3 border-b border-slate-100">
+                        {o.product_image ? (
+                          <img
+                            src={o.product_image}
+                            alt={o.product_name}
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-50"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <Package className="w-5 h-5" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          {o.product_id ? (
+                            <Link
+                              to={`/admin/products/${o.product_id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-bold text-slate-900 hover:text-primary transition text-xs line-clamp-1"
+                              title={o.product_name}
+                            >
+                              {o.product_name}
+                            </Link>
                           ) : (
-                            <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                              <Package className="w-4 h-4" />
-                            </div>
+                            <p className="font-bold text-slate-900 text-xs line-clamp-1" title={o.product_name}>
+                              {o.product_name}
+                            </p>
                           )}
 
-                          <div className="min-w-0 flex-1">
-                            {o.product_id ? (
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
+                            {o.vendor_id ? (
                               <Link
-                                to={`/admin/products/${o.product_id}`}
-                                className="font-bold text-slate-800 hover:text-primary transition truncate block"
-                                title={o.product_name}
+                                to={`/admin/vendors/${o.vendor_id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-primary hover:underline font-semibold flex items-center gap-1 truncate max-w-[140px]"
                               >
-                                {o.product_name}
+                                <Store className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{o.business_name || "Merchant"}</span>
                               </Link>
                             ) : (
-                              <p className="font-bold text-slate-800 truncate" title={o.product_name}>
-                                {o.product_name}
+                              <span className="truncate">{o.business_name || "Merchant"}</span>
+                            )}
+                            <span className="text-slate-400 shrink-0">• Qty: {o.quantity}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3. Customer Info */}
+                      <div className="py-2.5 text-xs border-b border-slate-100 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-800 text-xs truncate">
+                            {o.buyer_name || "Customer"}
+                          </p>
+                          <p className="text-[11px] text-slate-400 truncate max-w-[180px]">
+                            {o.buyer_email || "N/A"}
+                          </p>
+                        </div>
+                        {o.city && (
+                          <div className="text-right shrink-0">
+                            <p className="text-[11px] text-slate-500 font-medium flex items-center justify-end gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400" />
+                              <span>{o.city}{o.state ? `, ${o.state}` : ""}</span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 4. Financial & Settlement Pills */}
+                      <div className="pt-3 flex items-center justify-between gap-2 text-xs">
+                        <div>
+                          <div className="text-[10px] text-slate-400 uppercase font-semibold">Total Amount</div>
+                          <div className="text-base font-black text-slate-900">
+                            ₹{totalAmt.toLocaleString("en-IN")}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                              String(o.payment_method).toLowerCase() === "cod"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-emerald-100 text-emerald-800"
+                            }`}>
+                              {o.payment_method || "ONLINE"}
+                            </span>
+                            <span className={`text-[11px] font-bold ${
+                              o.payment_status === "paid" ? "text-emerald-600" : "text-amber-600"
+                            }`}>
+                              {o.payment_status === "paid" ? "Paid" : "Pending"}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 text-[10px]">
+                            <span className="text-slate-400">Payout:</span>
+                            <span className={`px-1.5 py-0.2 rounded font-bold uppercase ${
+                              o.payout_status === "paid"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            }`}>
+                              {o.payout_status === "paid" ? "Settled" : "Pending"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 5. Special Alerts: OTP or Refund note if applicable */}
+                      {(o.refund_status || (o.delivery_otp && String(o.order_status).toLowerCase() !== "delivered")) && (
+                        <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                          {o.refund_status && (
+                            <div className="flex items-center gap-1">
+                              {getRefundBadge(o.refund_status)}
+                              {o.refund_note && (
+                                <span className="text-[10px] text-slate-400 truncate max-w-[120px]" title={o.refund_note}>
+                                  {o.refund_note}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {o.delivery_otp && String(o.order_status).toLowerCase() !== "delivered" && (
+                            <span className="text-[10px] text-slate-600 font-mono font-bold bg-slate-100 px-2 py-0.5 rounded">
+                              OTP: {o.delivery_otp}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer cue: Entire card click opens dossier */}
+                    <div className="mt-3 pt-2.5 border-t border-slate-100/80 flex items-center justify-between text-[11px] text-slate-400 group-hover:text-primary transition-colors">
+                      <span className="font-semibold flex items-center gap-1">
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Inspect dossier &amp; update</span>
+                      </span>
+                      <span className="text-xs">→</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* B. STREAMLINED 6-COLUMN TABLE VIEW (Clean, fitted, no redundant Actions column) */
+            <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3.5">Order &amp; Date</th>
+                      <th className="px-4 py-3.5">Customer &amp; City</th>
+                      <th className="px-4 py-3.5">Item &amp; Merchant</th>
+                      <th className="px-4 py-3.5">Total &amp; Payment</th>
+                      <th className="px-4 py-3.5">Lifecycle Status</th>
+                      <th className="px-4 py-3.5">Settlement &amp; Dispute</th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                    {paginatedOrders.map((o) => {
+                      const totalAmt = Number(o.price_at_purchase || 0) * Number(o.quantity || 1);
+                      const orderDate = new Date(o.created_at);
+                      const placedToday = isToday(o.created_at);
+
+                      return (
+                        <tr
+                          key={`${o.order_id}-${o.item_id}`}
+                          onClick={() => setViewOrder(o)}
+                          className="hover:bg-orange-50/40 transition cursor-pointer group"
+                          title="Click row to inspect order dossier"
+                        >
+                          {/* 1. ORDER & DATE */}
+                          <td className="px-4 py-3.5 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono font-bold text-slate-900 group-hover:text-primary transition-colors">
+                                #{String(o.order_id).slice(0, 8).toUpperCase()}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(o.order_id, `order-${o.order_id}`);
+                                }}
+                                className="text-slate-400 hover:text-primary transition p-0.5 rounded"
+                                title="Copy full UUID"
+                              >
+                                {copiedId === `order-${o.order_id}` ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 mt-1">
+                              {placedToday && (
+                                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-400 text-slate-900 uppercase">
+                                  Today
+                                </span>
+                              )}
+                              <span className="text-[11px] text-slate-400">
+                                {orderDate.toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short"
+                                })}{" "}
+                                •{" "}
+                                {orderDate.toLocaleTimeString("en-IN", {
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* 2. CUSTOMER & CITY */}
+                          <td className="px-4 py-3.5">
+                            <p className="font-bold text-slate-900">{o.buyer_name || "Customer"}</p>
+                            <p className="text-[11px] text-slate-400 truncate max-w-[130px]" title={o.buyer_email}>
+                              {o.buyer_email || "N/A"}
+                            </p>
+                            {o.city && (
+                              <p className="text-[10px] text-slate-500 flex items-center gap-0.5 mt-0.5">
+                                <MapPin className="w-2.5 h-2.5 text-slate-400" />
+                                <span className="truncate max-w-[120px]">{o.city}{o.state ? `, ${o.state}` : ""}</span>
                               </p>
                             )}
+                          </td>
 
-                            <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                              {o.vendor_id ? (
-                                <Link
-                                  to={`/admin/vendors/${o.vendor_id}`}
-                                  className="text-primary hover:underline font-semibold flex items-center gap-1"
-                                >
-                                  <Store className="w-3 h-3" />
-                                  <span className="truncate max-w-[110px]">{o.business_name}</span>
-                                </Link>
+                          {/* 3. ITEM & MERCHANT */}
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-2.5 max-w-xs">
+                              {o.product_image ? (
+                                <img
+                                  src={o.product_image}
+                                  alt={o.product_name}
+                                  className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0 bg-slate-50"
+                                />
                               ) : (
-                                <span>{o.business_name || "Merchant"}</span>
+                                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                                  <Package className="w-4 h-4" />
+                                </div>
                               )}
-                              <span className="text-slate-400">• Qty: {o.quantity}</span>
+
+                              <div className="min-w-0 flex-1">
+                                {o.product_id ? (
+                                  <Link
+                                    to={`/admin/products/${o.product_id}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="font-bold text-slate-800 hover:text-primary transition truncate block"
+                                    title={o.product_name}
+                                  >
+                                    {o.product_name}
+                                  </Link>
+                                ) : (
+                                  <p className="font-bold text-slate-800 truncate" title={o.product_name}>
+                                    {o.product_name}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                                  {o.vendor_id ? (
+                                    <Link
+                                      to={`/admin/vendors/${o.vendor_id}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-primary hover:underline font-semibold flex items-center gap-1"
+                                    >
+                                      <Store className="w-3 h-3" />
+                                      <span className="truncate max-w-[100px]">{o.business_name}</span>
+                                    </Link>
+                                  ) : (
+                                    <span>{o.business_name || "Merchant"}</span>
+                                  )}
+                                  <span className="text-slate-400">• Qty: {o.quantity}</span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </td>
+                          </td>
 
-                      {/* 4. TOTAL & PAYMENT */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <p className="font-black text-slate-900 text-sm">
-                          ₹{totalAmt.toLocaleString("en-IN")}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            String(o.payment_method).toLowerCase() === "cod"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-emerald-100 text-emerald-800"
-                          }`}>
-                            {o.payment_method || "ONLINE"}
-                          </span>
-                          <span className={`text-[10px] font-semibold ${
-                            o.payment_status === "paid" ? "text-emerald-600" : "text-amber-600"
-                          }`}>
-                            {o.payment_status || "paid"}
-                          </span>
-                        </div>
-                      </td>
+                          {/* 4. TOTAL & PAYMENT */}
+                          <td className="px-4 py-3.5 whitespace-nowrap">
+                            <p className="font-black text-slate-900 text-sm">
+                              ₹{totalAmt.toLocaleString("en-IN")}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                String(o.payment_method).toLowerCase() === "cod"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-emerald-100 text-emerald-800"
+                              }`}>
+                                {o.payment_method || "ONLINE"}
+                              </span>
+                              <span className={`text-[10px] font-semibold ${
+                                o.payment_status === "paid" ? "text-emerald-600" : "text-amber-600"
+                              }`}>
+                                {o.payment_status || "paid"}
+                              </span>
+                            </div>
+                          </td>
 
-                      {/* 5. ORDER LIFECYCLE STATUS */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        {getStatusBadge(o.order_status)}
-                        {o.delivery_otp && String(o.order_status).toLowerCase() !== "delivered" && (
-                          <div className="text-[10px] text-slate-500 mt-1 font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded inline-block">
-                            OTP: {o.delivery_otp}
-                          </div>
-                        )}
-                      </td>
+                          {/* 5. ORDER LIFECYCLE STATUS */}
+                          <td className="px-4 py-3.5 whitespace-nowrap">
+                            {getStatusBadge(o.order_status)}
+                            {o.delivery_otp && String(o.order_status).toLowerCase() !== "delivered" && (
+                              <div className="text-[10px] text-slate-500 mt-1 font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded inline-block">
+                                OTP: {o.delivery_otp}
+                              </div>
+                            )}
+                          </td>
 
-                      {/* 6. VENDOR PAYOUT SETTLEMENT */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          o.payout_status === "paid"
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}>
-                          {o.payout_status === "paid" ? "Settled" : "Pending"}
-                        </span>
-                        {o.payout_reference && (
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate max-w-[100px]" title={o.payout_reference}>
-                            {o.payout_reference}
-                          </p>
-                        )}
-                      </td>
+                          {/* 6. SETTLEMENT & REFUND STATUS */}
+                          <td className="px-4 py-3.5 whitespace-nowrap">
+                            <div className="space-y-1">
+                              <div>
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  o.payout_status === "paid"
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                    : "bg-amber-50 text-amber-700 border border-amber-200"
+                                }`}>
+                                  Payout: {o.payout_status === "paid" ? "Settled" : "Pending"}
+                                </span>
+                              </div>
+                              {o.refund_status && (
+                                <div>
+                                  {getRefundBadge(o.refund_status)}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-                      {/* 7. REFUND STATUS */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        {getRefundBadge(o.refund_status)}
-                        {o.refund_note && (
-                          <p className="text-[10px] text-slate-400 max-w-[110px] truncate mt-0.5" title={o.refund_note}>
-                            {o.refund_note}
-                          </p>
-                        )}
-                      </td>
-
-                      {/* 8. ACTIONS */}
-                      <td className="px-5 py-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => setViewOrder(o)}
-                            className="p-1.5 rounded-xl text-slate-600 hover:text-primary hover:bg-orange-50 border border-slate-200 transition"
-                            title="Inspect Order Dossier"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-
-                          <button
-                            onClick={() => handleOpenEdit(o)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-orange-50 hover:bg-orange-100 text-primary border border-orange-200 transition shadow-2xs active:scale-95"
-                            title="Update Status, Payment, or Refund"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                            <span>Manage</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 6. PROPER PAGINATION CONTROLS */}
-          <div className="px-5 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+          {/* C. RESPONSIVE PAGINATION CONTROLS */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl px-5 py-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
             <div className="flex items-center gap-3">
               <span>
                 Showing <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> to{" "}
@@ -1139,10 +1364,10 @@ export default function AdminOrders() {
                   }}
                   className="px-2 py-1 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 focus:outline-none"
                 >
-                  <option value={10}>10</option>
+                  <option value={9}>9</option>
                   <option value={15}>15</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
+                  <option value={24}>24</option>
+                  <option value={48}>48</option>
                 </select>
               </div>
             </div>

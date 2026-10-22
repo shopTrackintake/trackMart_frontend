@@ -110,16 +110,7 @@ export default function AdminProductDetails() {
     );
   }
 
-  let benefits = [];
-  try {
-    if (typeof product.benefits === "string") {
-      benefits = JSON.parse(product.benefits);
-    } else if (Array.isArray(product.benefits)) {
-      benefits = product.benefits;
-    }
-  } catch (err) {
-    benefits = [];
-  }
+
 
   const isInactive = product.status === "inactive" || product.status === "deleted";
 
@@ -505,36 +496,7 @@ export default function AdminProductDetails() {
           )}
         </div>
 
-        {/* HEALTH & WELLNESS BENEFITS */}
-        {benefits && benefits.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-slate-100 space-y-4">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span>Verified Health &amp; Functional Benefits</span>
-            </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {benefits.map((b, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs"
-                >
-                  {b.image && (
-                    <img
-                      src={b.image}
-                      alt={b.title || "Benefit"}
-                      className="w-full h-32 object-cover"
-                    />
-                  )}
-                  <div className="p-4 space-y-1">
-                    <h4 className="font-bold text-sm text-slate-800">{b.title}</h4>
-                    <p className="text-xs text-slate-500 leading-relaxed">{b.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
       </div>
 

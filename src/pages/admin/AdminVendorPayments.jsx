@@ -31,7 +31,9 @@ import {
   ShieldCheck,
   Layers,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  LayoutGrid,
+  List
 } from "lucide-react";
 
 export default function AdminVendorPayments() {
@@ -39,6 +41,9 @@ export default function AdminVendorPayments() {
 
   // Active Hub Tab: 'vendors' (Vendor Payouts & Dues) vs 'refunds' (Buyer Refunds & Disputes)
   const [activeTab, setActiveTab] = useState("vendors");
+
+  // Layout View Mode: 'cards' (Modern Card Grid) vs 'table' (Tabular Audit View)
+  const [viewMode, setViewMode] = useState("cards");
 
   // Data states
   const [vendors, setVendors] = useState([]);
@@ -67,6 +72,7 @@ export default function AdminVendorPayments() {
   // 2. Vendor Payout Disburse Modal
   const [payoutVendor, setPayoutVendor] = useState(null);
   const [payoutReference, setPayoutReference] = useState("");
+  const [payoutAmount, setPayoutAmount] = useState("");
   const [clearingPayout, setClearingPayout] = useState(false);
 
   // 3. Buyer Refund Detail Modal
@@ -75,6 +81,7 @@ export default function AdminVendorPayments() {
   // 4. Buyer Process Refund Modal
   const [refundOrder, setRefundOrder] = useState(null);
   const [refundReference, setRefundReference] = useState("");
+  const [refundAmount, setRefundAmount] = useState("");
   const [refundNote, setRefundNote] = useState("");
   const [processingRefund, setProcessingRefund] = useState(false);
 
@@ -138,11 +145,15 @@ export default function AdminVendorPayments() {
     try {
       setClearingPayout(true);
       const ref = payoutReference.trim() || `PAY-${Date.now().toString().slice(-8)}`;
-      const res = await api.post(`/admin/vendor-payout/${payoutVendor.vendor_id}`, { reference: ref });
+      const res = await api.post(`/admin/vendor-payout/${payoutVendor.vendor_id}`, { 
+        reference: ref,
+        amount: payoutAmount !== "" ? Number(payoutAmount) : Number(payoutVendor.total_earning || 0)
+      });
 
       showToast(res.data?.message || "Vendor payout cleared and disbursed successfully!");
       setPayoutVendor(null);
       setPayoutReference("");
+      setPayoutAmount("");
       if (viewVendor && viewVendor.vendor_id === payoutVendor.vendor_id) {
         setViewVendor(prev => ({ ...prev, total_earning: 0, pending_orders_count: 0 }));
       }
@@ -167,12 +178,14 @@ export default function AdminVendorPayments() {
       const res = await api.post("/admin/process-refund", {
         order_id: refundOrder.order_id,
         reference: ref,
-        note
+        note,
+        amount: refundAmount !== "" ? Number(refundAmount) : Number(refundOrder.refund_amount || refundOrder.total_amount || 0)
       });
 
       showToast(res.data?.message || "Buyer refund settled and customer notified!");
       setRefundOrder(null);
       setRefundReference("");
+      setRefundAmount("");
       setRefundNote("");
       if (viewRefund && viewRefund.order_id === refundOrder.order_id) {
         setViewRefund(prev => ({ ...prev, refund_status: "refunded", refund_note: note }));
@@ -321,20 +334,21 @@ export default function AdminVendorPayments() {
         </div>
       )}
 
-      {/* 1. TOP HEADER BANNER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-800 p-6 sm:p-8 text-white shadow-xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+      {/* 1. TOP HEADER BANNER (Clean Light Theme) */}
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-8 text-slate-900 shadow-sm">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-orange-100/50 blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-10 w-48 h-48 rounded-full bg-slate-100/60 blur-2xl pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold backdrop-blur-xs border border-white/10 text-slate-300">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-xs font-bold border border-emerald-200 text-emerald-800">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               <span>RBAC Financial Treasury Console</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Payouts, Dues &amp; Refund Settlements Hub
             </h1>
-            <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
+            <p className="text-slate-500 text-xs sm:text-sm max-w-2xl leading-relaxed">
               Unified treasury terminal for disbursing merchant weekly earnings, auditing vendor bank accounts &amp; UPI credentials, and processing customer dispute refunds.
             </p>
           </div>
@@ -343,7 +357,7 @@ export default function AdminVendorPayments() {
             <button
               onClick={() => fetchData(true)}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 border border-white/20 text-white text-xs font-bold backdrop-blur-xs transition shadow-xs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white text-xs font-bold transition shadow-sm"
               title="Sync treasury balances"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
@@ -351,63 +365,118 @@ export default function AdminVendorPayments() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* 2. EXECUTIVE FINANCIAL KPI TELEMETRY */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 mt-6 border-t border-slate-700/60 text-xs">
-          {/* Vendor Outstanding Dues */}
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-xs">
-            <div className="flex items-center justify-between text-amber-300 text-[11px] font-bold uppercase tracking-wider">
-              <span>Outstanding Vendor Dues</span>
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            </div>
-            <div className="text-2xl font-black text-amber-300 mt-1">
+      {/* 2. EXECUTIVE FINANCIAL KPI TELEMETRY CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Vendor Outstanding Dues */}
+        <div
+          onClick={() => {
+            setActiveTab("vendors");
+            setVendorStatusFilter("due");
+          }}
+          className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+            activeTab === "vendors" && vendorStatusFilter === "due"
+              ? "bg-amber-50/80 border-amber-300 shadow-sm ring-2 ring-amber-400/20"
+              : "bg-white border-slate-200/90 hover:border-amber-300 hover:shadow-md"
+          }`}
+        >
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-700">Outstanding Vendor Dues</span>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black text-amber-600">
               ₹{financialStats.totalVendorDues.toLocaleString("en-IN")}
             </div>
-            <div className="text-amber-200/70 text-[10px] mt-0.5">
-              {financialStats.vendorsAwaitingPayout} merchant{financialStats.vendorsAwaitingPayout === 1 ? "" : "s"} awaiting payout
-            </div>
+            <p className="text-[11px] text-slate-500 mt-1 flex items-center justify-between font-medium">
+              <span>{financialStats.vendorsAwaitingPayout} merchant{financialStats.vendorsAwaitingPayout === 1 ? "" : "s"} awaiting payout</span>
+              <span className="text-amber-600 font-bold text-[10px]">Filter &rarr;</span>
+            </p>
           </div>
+        </div>
 
-          {/* Vendor Settled */}
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-            <div className="text-emerald-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Disbursed to Merchants</span>
-            </div>
-            <div className="text-2xl font-black text-white mt-1">
+        {/* Vendor Settled */}
+        <div
+          onClick={() => {
+            setActiveTab("vendors");
+            setVendorStatusFilter("settled");
+          }}
+          className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+            activeTab === "vendors" && vendorStatusFilter === "settled"
+              ? "bg-emerald-50/80 border-emerald-300 shadow-sm ring-2 ring-emerald-400/20"
+              : "bg-white border-slate-200/90 hover:border-emerald-300 hover:shadow-md"
+          }`}
+        >
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Disbursed to Merchants</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
               ₹{financialStats.totalVendorSettled.toLocaleString("en-IN")}
             </div>
-            <div className="text-slate-400 text-[10px] mt-0.5">
-              Historical settled earnings
-            </div>
+            <p className="text-[11px] text-slate-500 mt-1 flex items-center justify-between font-medium">
+              <span>Historical settled earnings</span>
+              <span className="text-emerald-600 font-bold text-[10px]">Filter &rarr;</span>
+            </p>
           </div>
+        </div>
 
-          {/* Buyer Pending Refunds */}
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-xs">
-            <div className="text-rose-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-              <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-              <span>Pending Buyer Refunds</span>
-            </div>
-            <div className="text-2xl font-black text-rose-300 mt-1">
+        {/* Buyer Pending Refunds */}
+        <div
+          onClick={() => {
+            setActiveTab("refunds");
+            setRefundStatusFilter("processing");
+          }}
+          className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+            activeTab === "refunds" && refundStatusFilter === "processing"
+              ? "bg-rose-50/80 border-rose-300 shadow-sm ring-2 ring-rose-400/20"
+              : "bg-white border-slate-200/90 hover:border-rose-300 hover:shadow-md"
+          }`}
+        >
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-rose-700">Pending Buyer Refunds</span>
+            <RotateCcw className="w-4 h-4 text-rose-500" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black text-rose-600">
               ₹{financialStats.totalPendingRefunds.toLocaleString("en-IN")}
             </div>
-            <div className="text-rose-200/70 text-[10px] mt-0.5">
-              {financialStats.pendingRefundCount} claim{financialStats.pendingRefundCount === 1 ? "" : "s"} to be credited
-            </div>
+            <p className="text-[11px] text-slate-500 mt-1 flex items-center justify-between font-medium">
+              <span>{financialStats.pendingRefundCount} claim{financialStats.pendingRefundCount === 1 ? "" : "s"} to be credited</span>
+              <span className="text-rose-600 font-bold text-[10px]">Filter &rarr;</span>
+            </p>
           </div>
+        </div>
 
-          {/* Buyer Settled Refunds */}
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-            <div className="text-purple-300 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-purple-400" />
-              <span>Refunds Settled</span>
-            </div>
-            <div className="text-2xl font-black text-white mt-1">
+        {/* Buyer Settled Refunds */}
+        <div
+          onClick={() => {
+            setActiveTab("refunds");
+            setRefundStatusFilter("refunded");
+          }}
+          className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+            activeTab === "refunds" && refundStatusFilter === "refunded"
+              ? "bg-purple-50/80 border-purple-300 shadow-sm ring-2 ring-purple-400/20"
+              : "bg-white border-slate-200/90 hover:border-purple-300 hover:shadow-md"
+          }`}
+        >
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-purple-700">Refunds Settled</span>
+            <CheckCircle2 className="w-4 h-4 text-purple-500" />
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
               ₹{financialStats.totalSettledRefunds.toLocaleString("en-IN")}
             </div>
-            <div className="text-slate-400 text-[10px] mt-0.5">
-              {financialStats.settledRefundCount} customer claims completed
-            </div>
+            <p className="text-[11px] text-slate-500 mt-1 flex items-center justify-between font-medium">
+              <span>{financialStats.settledRefundCount} customer claims completed</span>
+              <span className="text-purple-600 font-bold text-[10px]">Filter &rarr;</span>
+            </p>
           </div>
         </div>
       </div>
@@ -461,10 +530,10 @@ export default function AdminVendorPayments() {
 
       {/* 4. MULTI-ATTRIBUTE SEARCH & FILTER BAR */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
 
-          {/* Search bar (6 cols) */}
-          <div className="md:col-span-6 relative">
+          {/* Search bar (5 cols) */}
+          <div className="md:col-span-5 relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -512,8 +581,8 @@ export default function AdminVendorPayments() {
             )}
           </div>
 
-          {/* Sort By (3 cols) */}
-          <div className="md:col-span-3">
+          {/* Sort By (2 cols) */}
+          <div className="md:col-span-2">
             <div className="relative">
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <select
@@ -529,6 +598,40 @@ export default function AdminVendorPayments() {
               </select>
             </div>
           </div>
+
+          {/* View Mode Toggle: Cards vs Table (2 cols) */}
+          <div className="md:col-span-2 flex items-center justify-end">
+            <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 w-full sm:w-auto justify-center">
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  viewMode === "cards"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="Card View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-primary" />
+                <span>Cards</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  viewMode === "table"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="Table View"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>Table</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -550,7 +653,168 @@ export default function AdminVendorPayments() {
                 No vendors match your current search or filter criteria.
               </p>
             </div>
+          ) : viewMode === "cards" ? (
+            /* ================= VENDOR CARDS GRID ================= */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {paginatedData.map((v) => {
+                const amount = Number(v.total_earning || 0);
+                const hasDue = amount > 0;
+
+                return (
+                  <div
+                    key={v.vendor_id}
+                    className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
+                  >
+                    <div className="space-y-4">
+                      {/* Card Header: Store Avatar, Name, Status Badge */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200 text-primary border border-orange-300 flex items-center justify-center shrink-0 font-black text-base group-hover:scale-105 transition-transform">
+                            {v.business_name?.[0]?.toUpperCase() || "S"}
+                          </div>
+                          <div className="min-w-0">
+                            <h3
+                              onClick={() => handleOpenVendorDossier(v)}
+                              className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-primary transition-colors truncate cursor-pointer"
+                              title={v.business_name}
+                            >
+                              {v.business_name}
+                            </h3>
+                            <p className="text-xs text-slate-500 truncate flex items-center gap-1.5 mt-0.5">
+                              <User className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{v.owner_name || "N/A"}</span>
+                              {v.phone && <span>• {v.phone}</span>}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${
+                          hasDue
+                            ? "bg-amber-100 text-amber-800 border border-amber-200 animate-pulse"
+                            : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        }`}>
+                          {hasDue ? "Settlement Due" : "All Settled"}
+                        </span>
+                      </div>
+
+                      {/* Outstanding Amount Highlight Box */}
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            Pending Payout Due
+                          </span>
+                          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
+                            ₹{amount.toLocaleString("en-IN")}
+                          </div>
+                        </div>
+                        <div className="text-right space-y-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            Orders Awaiting
+                          </span>
+                          <span className="text-xs font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                            {v.pending_orders_count || 0} items
+                          </span>
+                          {v.commission_percent !== undefined && (
+                            <span className="text-[10px] text-primary font-bold block">
+                              Fee: {v.commission_percent}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Bank & UPI Credentials Box */}
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2 text-xs">
+                        {/* UPI */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">UPI:</span>
+                            <span className="font-mono text-xs font-bold text-slate-800 truncate">
+                              {v.upi_id || "Not registered"}
+                            </span>
+                          </div>
+                          {v.upi_id && (
+                            <button
+                              onClick={() => handleCopy(v.upi_id, `card-upi-${v.vendor_id}`)}
+                              className="text-slate-400 hover:text-primary transition p-0.5 shrink-0"
+                              title="Copy UPI ID"
+                            >
+                              {copiedKey === `card-upi-${v.vendor_id}` ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Bank Account */}
+                        {v.bank_account_number ? (
+                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/60">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">A/C:</span>
+                              <span className="font-mono text-xs font-semibold text-slate-700 truncate">
+                                {v.bank_account_number} {v.bank_ifsc ? `(${v.bank_ifsc})` : ""}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleCopy(v.bank_account_number, `card-bank-${v.vendor_id}`)}
+                              className="text-slate-400 hover:text-primary transition p-0.5 shrink-0"
+                              title="Copy Account Number"
+                            >
+                              {copiedKey === `card-bank-${v.vendor_id}` ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          !v.upi_id && (
+                            <div className="text-[11px] text-slate-400 italic">
+                              No bank or UPI registered yet
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Actions Footer */}
+                    <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => handleOpenVendorDossier(v)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-primary hover:bg-orange-50 text-xs font-bold transition"
+                        title="View Vendor Payout Dossier"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Dossier</span>
+                      </button>
+
+                      {hasDue ? (
+                        <button
+                          onClick={() => {
+                            setPayoutVendor(v);
+                            setPayoutReference(`PAY-${Date.now().toString().slice(-6)}`);
+                            setPayoutAmount(v.total_earning || 0);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-2xs active:scale-95"
+                          title="Disburse Payout to Merchant"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Pay Merchant</span>
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 px-3 py-1.5 bg-emerald-50 rounded-xl">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>All Settled</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
+            /* ================= VENDOR TABLE VIEW ================= */
             <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
@@ -578,17 +842,18 @@ export default function AdminVendorPayments() {
                               <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200/70 text-primary flex items-center justify-center shrink-0">
                                 <Store className="w-4 h-4" />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <h4
                                   onClick={() => handleOpenVendorDossier(v)}
-                                  className="font-bold text-slate-900 hover:text-primary transition cursor-pointer"
+                                  className="font-bold text-slate-900 hover:text-primary transition cursor-pointer truncate max-w-[180px]"
+                                  title={v.business_name}
                                 >
                                   {v.business_name}
                                 </h4>
                                 <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
-                                  <span>ID: #{v.vendor_id}</span>
+                                  <span>ID: #{String(v.vendor_id || "").slice(0, 8)}</span>
                                   {v.commission_percent !== undefined && (
-                                    <span>• Comm: {v.commission_percent}%</span>
+                                    <span>• Fee: {v.commission_percent}%</span>
                                   )}
                                 </div>
                               </div>
@@ -691,6 +956,7 @@ export default function AdminVendorPayments() {
                                   onClick={() => {
                                     setPayoutVendor(v);
                                     setPayoutReference(`PAY-${Date.now().toString().slice(-6)}`);
+                                    setPayoutAmount(v.total_earning || 0);
                                   }}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-xs active:scale-95"
                                   title="Disburse Payout"
@@ -734,7 +1000,140 @@ export default function AdminVendorPayments() {
                 No cancelled or refunded orders matching your filter criteria.
               </p>
             </div>
+          ) : viewMode === "cards" ? (
+            /* ================= BUYER REFUNDS CARDS GRID ================= */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {paginatedData.map((r) => {
+                const amount = Number(r.refund_amount || r.total_amount || 0);
+                const isPending = String(r.refund_status || "").toLowerCase() !== "refunded";
+
+                return (
+                  <div
+                    key={r.order_id}
+                    className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
+                  >
+                    <div className="space-y-4">
+                      {/* Header: Order ID, Date & Status */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-bold text-slate-900 text-sm">
+                              #{String(r.order_id).slice(0, 8).toUpperCase()}
+                            </span>
+                            <button
+                              onClick={() => handleCopy(r.order_id, `card-ref-${r.order_id}`)}
+                              className="text-slate-400 hover:text-primary transition p-0.5"
+                              title="Copy Order UUID"
+                            >
+                              {copiedKey === `card-ref-${r.order_id}` ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                          <span className="text-[11px] text-slate-400 block mt-0.5">
+                            {new Date(r.cancelled_at || r.created_at).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric"
+                            })}
+                          </span>
+                        </div>
+
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${
+                          isPending
+                            ? "bg-rose-100 text-rose-800 border border-rose-200 animate-pulse"
+                            : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        }`}>
+                          {isPending ? "Refund Pending" : "Refund Settled"}
+                        </span>
+                      </div>
+
+                      {/* Customer Details */}
+                      <div className="space-y-1 text-xs">
+                        <p className="font-bold text-slate-900 flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{r.buyer_name || "Customer"}</span>
+                        </p>
+                        <p className="text-slate-500 truncate" title={r.buyer_email}>
+                          {r.buyer_email}
+                        </p>
+                        {r.buyer_phone && (
+                          <p className="text-slate-500 flex items-center gap-1">
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            <span>{r.buyer_phone}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Refund Highlight Box */}
+                      <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 block">
+                            Refund Amount
+                          </span>
+                          <div className="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">
+                            ₹{amount.toLocaleString("en-IN")}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            Method
+                          </span>
+                          <span className="text-xs font-bold text-slate-700 uppercase bg-white px-2 py-0.5 rounded border border-slate-200">
+                            {r.payment_method || "ONLINE"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Cancellation Reason */}
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Reason:</span>
+                        <p className="line-clamp-2 leading-relaxed text-[11px]">
+                          {r.cancellation_reason || "Customer requested order cancellation"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Card Actions Footer */}
+                    <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => setViewRefund(r)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-primary hover:bg-orange-50 text-xs font-bold transition"
+                        title="Inspect Buyer Claim"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Claim Detail</span>
+                      </button>
+
+                      {isPending ? (
+                        <button
+                          onClick={() => {
+                            setRefundOrder(r);
+                            setRefundReference(`REF-${Date.now().toString().slice(-6)}`);
+                            setRefundAmount(r.refund_amount || r.total_amount || 0);
+                            setRefundNote(`Refund of ₹${amount} credited via Razorpay/Bank transfer`);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-2xs active:scale-95"
+                          title="Disburse Refund to Buyer"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Pay Buyer</span>
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 px-3 py-1.5 bg-emerald-50 rounded-xl">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Credited</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
+            /* ================= BUYER REFUNDS TABLE VIEW ================= */
             <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
@@ -846,6 +1245,7 @@ export default function AdminVendorPayments() {
                                   onClick={() => {
                                     setRefundOrder(r);
                                     setRefundReference(`REF-${Date.now().toString().slice(-6)}`);
+                                    setRefundAmount(r.refund_amount || r.total_amount || 0);
                                     setRefundNote(`Refund of ₹${amount} credited via Razorpay/Bank transfer`);
                                   }}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-xs active:scale-95"
@@ -1164,6 +1564,7 @@ export default function AdminVendorPayments() {
                       setViewVendor(null);
                       setPayoutVendor(v);
                       setPayoutReference(`PAY-${Date.now().toString().slice(-6)}`);
+                      setPayoutAmount(v.total_earning || 0);
                     }}
                     className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition shadow-xs active:scale-95"
                   >
@@ -1204,20 +1605,41 @@ export default function AdminVendorPayments() {
               )}
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
-                Bank / UPI Transaction Reference (UTR)
-              </label>
-              <input
-                type="text"
-                value={payoutReference}
-                onChange={(e) => setPayoutReference(e.target.value)}
-                placeholder="e.g. UTR-98218932 or IMPS-8921"
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">
-                This transaction reference will be saved to the database and notified to the merchant.
-              </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Payout Disbursal Amount (₹)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={payoutAmount}
+                    onChange={(e) => setPayoutAmount(e.target.value)}
+                    className="w-full text-xs pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold text-slate-900"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Default: ₹{Number(payoutVendor.total_earning || 0).toLocaleString()}. Modify to disburse a custom or partial payout.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Bank / UPI Transaction Reference (UTR)
+                </label>
+                <input
+                  type="text"
+                  value={payoutReference}
+                  onChange={(e) => setPayoutReference(e.target.value)}
+                  placeholder="e.g. UTR-98218932 or IMPS-8921"
+                  className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  This transaction reference will be saved to the database and notified to the merchant.
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -1386,6 +1808,7 @@ export default function AdminVendorPayments() {
                     setViewRefund(null);
                     setRefundOrder(r);
                     setRefundReference(`REF-${Date.now().toString().slice(-6)}`);
+                    setRefundAmount(r.refund_amount || r.total_amount || 0);
                     setRefundNote(`Refund of ₹${r.refund_amount || r.total_amount} settled successfully`);
                   }}
                   className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-xs active:scale-95"
@@ -1421,6 +1844,25 @@ export default function AdminVendorPayments() {
               <p>Customer: <strong className="text-slate-900 font-bold">{refundOrder.buyer_name}</strong> ({refundOrder.buyer_email})</p>
               <p>Order: <strong className="text-slate-900 font-mono">#{String(refundOrder.order_id).slice(0, 8).toUpperCase()}</strong></p>
               <p>Refund Amount: <strong className="text-rose-700 font-black text-lg">₹{Number(refundOrder.refund_amount || refundOrder.total_amount || 0).toLocaleString()}</strong></p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                Refund Disbursal Amount (₹)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  className="w-full text-xs pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 font-bold text-slate-900"
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Default: ₹{Number(refundOrder.refund_amount || refundOrder.total_amount || 0).toLocaleString()}. Adjust to execute partial or custom refund amount.
+              </p>
             </div>
 
             <div>

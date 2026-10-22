@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, UserCheck, Store, Package, ShoppingBag, 
   Wallet, Headphones, ShieldCheck, X, Menu, ChevronRight,
-  PlusCircle, ShoppingCart, User
+  PlusCircle, ShoppingCart, User, Settings
 } from "lucide-react";
 import api from "../services/api";
 
@@ -180,6 +180,15 @@ export default function Sidebar({ role }) {
                 >
                   <Headphones className="w-4 h-4 shrink-0" />
                   <span>Support Desk</span>
+                </NavLink>
+
+                <NavLink 
+                  to="/admin/settings" 
+                  onClick={() => setIsOpen(false)}
+                  className={({ isActive }) => getLinkClass(isActive)}
+                >
+                  <Settings className="w-4 h-4 shrink-0" />
+                  <span>Platform Settings</span>
                 </NavLink>
               </>
             )}
