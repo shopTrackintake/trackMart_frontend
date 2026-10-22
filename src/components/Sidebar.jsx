@@ -125,7 +125,7 @@ export default function Sidebar({ role }) {
                   className={({ isActive }) => getLinkClass(isActive)}
                 >
                   <UserCheck className="w-4 h-4 shrink-0" />
-                  <span className="flex-1">KYC Approvals</span>
+                  <span className="flex-1">Seller Approvals</span>
                   {pendingCount > 0 && (
                     <span className="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-amber-500 text-white">
                       {pendingCount}

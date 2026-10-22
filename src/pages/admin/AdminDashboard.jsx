@@ -121,7 +121,7 @@ export default function AdminDashboard() {
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-orange-500/25 transition active:scale-95"
               >
                 <AlertCircle className="w-4 h-4 animate-bounce" />
-                <span>{stats.pending} KYC Review{stats.pending > 1 ? "s" : ""}</span>
+                <span>{stats.pending} Seller Review{stats.pending > 1 ? "s" : ""}</span>
               </button>
             )}
 
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
               </Link>
               {stats.pending > 0 && (
                 <Link to="/admin/approve-vendors" className="text-amber-600 font-bold hover:underline">
-                  Review KYC ({stats.pending})
+                  Verify Sellers ({stats.pending})
                 </Link>
               )}
             </div>
@@ -364,7 +364,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-          {/* Module 1: KYC Approvals */}
+          {/* Module 1: Seller Verification & Approvals */}
           <div 
             onClick={() => navigate("/admin/approve-vendors")}
             className="p-5 rounded-2xl border border-slate-200/90 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50/20 hover:to-orange-50/50 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
@@ -385,10 +385,10 @@ export default function AdminDashboard() {
                 )}
               </div>
               <h3 className="font-bold text-slate-900 text-base group-hover:text-primary transition-colors">
-                KYC & Vendor Approvals
+                Seller Verification & Approvals
               </h3>
               <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Review pending merchant applications, verify GSTIN, bank details, and approve seller stores.
+                Review incoming merchant registrations, verify store profiles, business credentials, and activate seller storefronts.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-bold text-primary gap-1 group-hover:translate-x-1 transition-transform">
@@ -660,7 +660,7 @@ export default function AdminDashboard() {
                             ? "bg-amber-100 text-amber-800 animate-pulse"
                             : "bg-slate-100 text-slate-700"
                         }`}>
-                          {vendor.kyc_status}
+                          {vendor.kyc_status === "approved" ? "Verified" : vendor.kyc_status === "pending" ? "Pending Approval" : "On Hold"}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 truncate">
@@ -674,14 +674,14 @@ export default function AdminDashboard() {
                           onClick={() => navigate("/admin/approve-vendors")}
                           className="px-3 py-1.5 bg-primary hover:bg-orange-600 text-white text-xs font-bold rounded-lg shadow-2xs transition"
                         >
-                          Review KYC
+                          Verify Seller
                         </button>
                       ) : (
                         <button
                           onClick={() => navigate(`/admin/vendors/${vendor.id}`)}
                           className="px-3 py-1.5 border border-slate-200 hover:border-primary text-slate-600 hover:text-primary text-xs font-semibold rounded-lg bg-white transition"
                         >
-                          Details
+                          Store Profile
                         </button>
                       )}
                     </div>
@@ -700,7 +700,7 @@ export default function AdminDashboard() {
               to="/admin/approve-vendors"
               className="text-xs font-bold text-slate-600 hover:text-primary transition inline-flex items-center gap-1.5"
             >
-              <span>Open KYC Verification Queue</span>
+              <span>Open Seller Approvals Queue</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>

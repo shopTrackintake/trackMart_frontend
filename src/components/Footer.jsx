@@ -72,7 +72,7 @@ export default function Footer() {
                 <li>
                   <Link to="/admin/approve-vendors" className="text-slate-300 hover:text-primary hover:translate-x-1 transition-all inline-flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
-                    <span>KYC & Vendor Approvals</span>
+                    <span>Seller Verification & Onboarding</span>
                   </Link>
                 </li>
                 <li>

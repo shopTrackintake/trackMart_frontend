@@ -73,13 +73,13 @@ Vendor Details
 <span
   className={`inline-block mt-1 px-3 py-1 text-xs rounded-full font-semibold ${
     vendor.kyc_status === "approved"
-      ? "bg-green-100 text-green-700"
+      ? "bg-emerald-100 text-emerald-700"
       : vendor.kyc_status === "rejected"
-      ? "bg-red-100 text-red-700"
-      : "bg-yellow-100 text-yellow-700"
+      ? "bg-rose-100 text-rose-700"
+      : "bg-amber-100 text-amber-700"
   }`}
 >
-  {vendor.kyc_status}
+  {vendor.kyc_status === "approved" ? "Verified Seller" : vendor.kyc_status === "rejected" ? "Rejected" : "Pending Verification"}
 </span>
 
 </div>

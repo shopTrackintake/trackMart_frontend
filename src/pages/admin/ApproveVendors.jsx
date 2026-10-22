@@ -119,15 +119,12 @@ export default function ApproveVendors() {
       {/* Header */}
 
       <div>
-
         <h1 className="text-2xl font-primary font-bold text-textStrong">
-          Vendor Approvals
+          Seller Approvals &amp; Verification
         </h1>
-
         <p className="text-textDefault mt-2">
-          Review vendor registrations.
+          Review incoming merchant applications, verify store profiles, and manage seller onboarding status.
         </p>
-
       </div>
 
 
@@ -180,20 +177,20 @@ export default function ApproveVendors() {
 
     {/* STATUS */}
     {v.kyc_status === "pending" && (
-      <span className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded-full mt-2 inline-block">
-        Pending
+      <span className="text-xs px-3 py-1 bg-amber-100 text-amber-800 rounded-full mt-2 inline-block font-semibold">
+        Pending Review
       </span>
     )}
 
     {v.kyc_status === "hold" && (
-      <span className="text-xs px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full mt-2 inline-block">
-        Hold
+      <span className="text-xs px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full mt-2 inline-block font-semibold">
+        On Hold
       </span>
     )}
 
     {v.kyc_status === "approved" && (
-      <span className="text-xs px-3 py-1 bg-green-200 text-green-800 rounded-full mt-2 inline-block">
-        Approved
+      <span className="text-xs px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full mt-2 inline-block font-semibold">
+        Verified &amp; Active
       </span>
     )}
 
