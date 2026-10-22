@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { getCategories } from "../../services/categoryService";
 import { createProduct, getProductById, updateProduct } from "../../services/productService";
@@ -7,7 +7,7 @@ import {
   Package, Tag, IndianRupee, Percent, Layers, 
   Upload, X, Check, Activity, FileText, Image as ImageIcon,
   Flame, Award, Scale, Calendar, Building, ShieldCheck,
-  CheckCircle2, Plus, Sparkles, HeartPulse, Info
+  CheckCircle2, Plus, Sparkles, HeartPulse, Info, FileSpreadsheet
 } from "lucide-react";
 
 export default function AddProduct({ isEdit = false }) {
@@ -176,13 +176,7 @@ export default function AddProduct({ isEdit = false }) {
     fetchInitialData();
   }, [isEdit, id]);
 
-  /* ================= HEALTH RATING CALCULATOR ================= */
-  const calculateHealth = () => {
-    if (Number(form.sugar) > 20 || Number(form.fat) > 20 || Number(form.calories) > 500) {
-      return "Unhealthy";
-    }
-    return "Healthy";
-  };
+
 
 
 
@@ -240,8 +234,6 @@ export default function AddProduct({ isEdit = false }) {
           formData.append(key, form[key]);
         }
       });
-
-      formData.append("vendor_claimed_health", calculateHealth());
 
       if (isEdit && id) {
         await updateProduct(id, formData, token);
@@ -303,6 +295,30 @@ export default function AddProduct({ isEdit = false }) {
           </button>
         </div>
       </div>
+
+      {/* BULK UPLOAD CALLOUT BANNER (Only on Add Product, not edit) */}
+      {!isEdit && (
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <FileSpreadsheet className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-900 text-sm">Need to add multiple products at once?</h4>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Save time by uploading an Excel spreadsheet (<span className="font-mono text-emerald-700 font-bold">.xlsx</span>). Download our prefilled template with all required fields marked.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/vendor/bulk-upload"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shrink-0 active:scale-95 shadow-xs"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Upload from Excel (.xlsx)</span>
+          </Link>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         
