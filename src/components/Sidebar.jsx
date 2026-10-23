@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, UserCheck, Store, Package, ShoppingBag, 
   Wallet, Headphones, ShieldCheck, X, Menu, ChevronRight,
-  PlusCircle, ShoppingCart, User, Settings
+  PlusCircle, ShoppingCart, User, Settings, FileSpreadsheet
 } from "lucide-react";
 import api from "../services/api";
 
@@ -213,6 +213,15 @@ export default function Sidebar({ role }) {
                 >
                   <PlusCircle className="w-4 h-4 shrink-0" />
                   <span>Add Product</span>
+                </NavLink>
+
+                <NavLink 
+                  to="/vendor/bulk-upload" 
+                  onClick={() => setIsOpen(false)}
+                  className={({ isActive }) => getLinkClass(isActive)}
+                >
+                  <FileSpreadsheet className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>Bulk Upload (.xlsx)</span>
                 </NavLink>
 
                 <NavLink 

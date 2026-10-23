@@ -20,6 +20,7 @@ import Wishlist from "./pages/public/Wishlist";
 /* Vendor Pages */
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import AddProduct from "./pages/vendor/AddProduct";
+import VendorBulkUpload from "./pages/vendor/VendorBulkUpload";
 import VendorPayments from "./pages/vendor/VendorPayments";
 import VendorProductDetails from "./pages/vendor/VendorProductDetails";
 /* Admin Pages */
@@ -118,6 +119,7 @@ function App() {
         >
           <Route index element={<VendorDashboard />} />
           <Route path="add-product" element={<AddProduct />} />
+          <Route path="bulk-upload" element={<VendorBulkUpload />} />
           <Route path="edit-product/:id" element={<AddProduct isEdit={true} />} />
           <Route path="products" element={<VendorProducts />} />
           <Route path="products/:id" element={<VendorProductDetails />} />

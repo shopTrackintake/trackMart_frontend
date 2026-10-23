@@ -260,15 +260,6 @@ export default function VendorProductDetails() {
                     {product.category_name}
                   </span>
                 )}
-                {product.health_rating && (
-                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                    product.health_rating === "Healthy"
-                      ? "bg-green-100 text-green-800 border border-green-200"
-                      : "bg-red-100 text-red-800 border border-red-200"
-                  }`}>
-                    {product.health_rating} Rating
-                  </span>
-                )}
               </div>
 
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-snug">

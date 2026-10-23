@@ -4,7 +4,7 @@ import api from "../../services/api";
 import { 
   PlusCircle, Search, Edit3, Trash2, Package, 
   Percent, ChevronLeft, ChevronRight, Eye, EyeOff, 
-  Power, CheckCircle2, AlertCircle
+  Power, CheckCircle2, AlertCircle, FileSpreadsheet
 } from "lucide-react";
 
 export default function VendorProducts() {
@@ -134,13 +134,24 @@ export default function VendorProducts() {
           </p>
         </div>
 
-        <button
-          onClick={() => navigate("/vendor/add-product")}
-          className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-xs active:scale-95 text-sm shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" />
-          Add New Product
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => navigate("/vendor/bulk-upload")}
+            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-semibold transition shadow-xs active:scale-95 text-sm shrink-0"
+            title="Upload multiple products via Excel spreadsheet (.xlsx)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-100" />
+            <span>Import from Excel (.xlsx)</span>
+          </button>
+
+          <button
+            onClick={() => navigate("/vendor/add-product")}
+            className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primaryHover text-white px-4 py-2.5 rounded-xl font-semibold transition shadow-xs active:scale-95 text-sm shrink-0"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Add Single Product</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. SEARCH & FILTER BAR */}
@@ -336,14 +347,6 @@ export default function VendorProducts() {
                           </span>
                         )}
                       </div>
-
-                      {p.health_rating && (
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          p.health_rating === "Healthy" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        }`}>
-                          {p.health_rating}
-                        </span>
-                      )}
                     </div>
 
                     {/* Actions: View Details, Edit, Delete, Toggle */}
